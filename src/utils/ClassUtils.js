@@ -1,4 +1,4 @@
-function getClassNames(obj) {
+function _getClassNames(obj) {
     let result = [];
 
     if (obj instanceof Object) {
@@ -12,8 +12,8 @@ function getClassNames(obj) {
     return result;
 }
 
-function isInstance(obj, type) {
-    let names = getClassNames(obj);
+function _isInstance(obj, type) {
+    let names = _getClassNames(obj);
     for (let i = 0, other; other = names[i]; i++){
         if (other === type) {
             return true;
@@ -25,7 +25,7 @@ function isInstance(obj, type) {
 class ClassUtils {
 }
 
-ClassUtils.getClassNames = getClassNames;
-ClassUtils.isInstance = isInstance;
+ClassUtils.getClassNames = _getClassNames;
+ClassUtils.isInstance = _isInstance;
 
 export default ClassUtils;

@@ -1,4 +1,4 @@
-function requestAnimFrame() {
+function _requestAnimFrame() {
     return window.requestAnimationFrame ||
         window.webkitRequestAnimationFrame ||
         window.mozRequestAnimationFrame ||
@@ -9,7 +9,7 @@ function requestAnimFrame() {
         }
 }
 
-function cancelAnimFrame() {
+function _cancelAnimFrame() {
     return window.cancelAnimationFrame ||
         window.webkitCancelAnimationFrame ||
         window.mozCancelAnimationFrame ||
@@ -21,7 +21,7 @@ function cancelAnimFrame() {
 
 class BrowserUtils {}
 
-BrowserUtils.requestAnimFrame = requestAnimFrame().bind(null);
-BrowserUtils.cancelAnimFrame = cancelAnimFrame().bind(null);
+BrowserUtils.requestAnimFrame = _requestAnimFrame().bind(null);
+BrowserUtils.cancelAnimFrame = _cancelAnimFrame().bind(null);
 
 export default BrowserUtils;
