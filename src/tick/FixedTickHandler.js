@@ -6,7 +6,6 @@ class FixedTickHandler extends TickHandler {
         this.canvas = canvas;
         this.tickLength = tickLength;
         this.lastTick = 0;
-        this.isPlaying = false;
     }
 
     dispatch(tFrame) {

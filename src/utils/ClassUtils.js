@@ -22,8 +22,7 @@ function _isInstance(obj, type) {
     return false;
 }
 
-class ClassUtils {
-}
+class ClassUtils {}
 
 ClassUtils.getClassNames = _getClassNames;
 ClassUtils.isInstance = _isInstance;
