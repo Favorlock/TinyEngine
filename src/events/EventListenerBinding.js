@@ -1,11 +1,12 @@
 class EventListenerBinding {
-    constructor(listener, isOnce = false) {
+    constructor(listener, ctx, isOnce = false) {
         this.listener = listener;
+        this.ctx = ctx;
         this.isOnce = isOnce;
     }
 
-    emitEvent(args = []) {
-        this.listener.call(this.listener, args);
+    emitEvent() {
+        this.listener.apply(this.ctx, arguments);
     }
 }
 

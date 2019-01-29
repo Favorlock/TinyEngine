@@ -1,7 +1,7 @@
 import EventDispatch from "../events/EventDispatch.js";
 import BrowserUtils from "../utils/BrowserUtils.js";
 
-class TickHandler extends EventDispatch {
+class Timestep extends EventDispatch {
     constructor(canvas) {
         super();
         this.canvas = canvas;
@@ -18,17 +18,17 @@ class TickHandler extends EventDispatch {
         BrowserUtils.cancelAnimFrame(this.requestId);
     }
 
-    dispatch(args) {
-        this.queueUpdates(args);
+    dispatch() {
+        this.queueUpdates.apply(this, arguments);
 
         if (this.isPlaying) {
             this.requestId = BrowserUtils.requestAnimFrame(this.dispatch.bind(this), this.canvas);
         }
     }
 
-    queueUpdates(args) {
-        super.dispatch(args);
+    queueUpdates() {
+        super.dispatch.apply(this, arguments);
     }
 }
 
-export default TickHandler
+export default Timestep

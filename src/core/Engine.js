@@ -1,5 +1,5 @@
 import ECS from "../ecs/ECS.js";
-import FixedTickHandler from "../tick/FixedTickHandler.js";
+import SemiFixedTimestep from "../tick/SemiFixedTimestep.js";
 
 class Engine {
     constructor(config = {}) {
@@ -11,7 +11,7 @@ class Engine {
         this.canvas = this.config.canvas || document.getElementById("viewport");
         this.ctx = this.canvas.getContext('2d');
         this.ecs = this.config.ecs || new ECS();
-        this.tickHandler = new FixedTickHandler(this.canvas);
+        this.tickHandler = new SemiFixedTimestep(this.canvas);
 
         // Configure Canvas
         this.canvas.width = this.config.width || 1024;
@@ -25,7 +25,7 @@ class Engine {
 
     start() {
         if (this.isInitialized) {
-            this.tickHandler.add(this.ecs.update);
+            this.tickHandler.add(this.ecs.update, this.ecs);
             this.tickHandler.start();
         }
     }

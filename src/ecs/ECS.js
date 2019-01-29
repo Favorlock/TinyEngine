@@ -40,10 +40,10 @@ class ECS {
     removeEntity(entity) {
     }
 
-    update(time) {
+    update() {
         this.updating = true;
         // TODO: System Updates
-        console.log('Delta: ' + time);
+        console.log(arguments);
         this.updating = false;
     }
 }

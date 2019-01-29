@@ -1,6 +1,6 @@
-import TickHandler from "./TickHandler.js";
+import Timestep from "./Timestep.js";
 
-class FixedTickHandler extends TickHandler {
+class FixedTimestep extends Timestep {
     constructor(canvas, tickLength = 1000 / 50) {
         super();
         this.canvas = canvas;
@@ -28,4 +28,4 @@ class FixedTickHandler extends TickHandler {
     }
 }
 
-export default FixedTickHandler;
+export default FixedTimestep;

@@ -5,13 +5,13 @@ class EventDispatch {
         this.bindings = new Map();
     }
 
-    add(listener) {
+    add(listener, ctx) {
         if (!listener || typeof listener !== 'function') {
             return;
         }
 
         if (!this.bindings.has(listener)) {
-            this.bindings.set(listener, new EventListenerBinding(listener));
+            this.bindings.set(listener, new EventListenerBinding(listener, ctx));
         }
     }
 
@@ -33,9 +33,9 @@ class EventDispatch {
         this.bindings.delete(listener);
     }
 
-    dispatch(args = []) {
+    dispatch() {
         for (let [listener, binding] of this.bindings) {
-            binding.emitEvent(args);
+            binding.emitEvent.apply(binding, arguments);
 
             if (binding.isOnce) {
                 this.remove(listener);
