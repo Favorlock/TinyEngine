@@ -22,8 +22,10 @@ class FixedTimestep extends Timestep {
 
     queueUpdates(numTicks) {
         for (let i = 0; i < numTicks; i++) {
+            let prev = this.lastTick;
             this.lastTick += this.tickLength;
-            super.queueUpdates(this.lastTick);
+            let dt = this.lastTick - prev;
+            super.queueUpdates(this.lastTick, dt);
         }
     }
 }

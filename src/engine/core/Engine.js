@@ -1,6 +1,5 @@
 import ECS from "../ecs/ECS.js";
-import SemiFixedTimestep from "../tick/SemiFixedTimestep.js";
-import TypeRegistry from "../serialization/TypeRegistry.js";
+import FixedTimestep from "../tick/FixedTimestep.js";
 
 class Engine {
     constructor(config = {}) {
@@ -10,10 +9,9 @@ class Engine {
 
     init() {
         this.canvas = this.config.canvas || document.getElementById("viewport");
-        this.ctx = this.canvas.getContext('2d');
+        this.ctx = this.config.ctx || this.canvas.getContext('2d');
         this.ecs = this.config.ecs || new ECS();
-        this.tickHandler = new SemiFixedTimestep(this.canvas);
-        this.typeRegistry = new TypeRegistry();
+        this.tickHandler = this.config.tickHandler || new FixedTimestep(this.canvas);
 
         // Configure Canvas
         this.canvas.width = this.config.width || 1024;
@@ -21,6 +19,13 @@ class Engine {
 
         // Configure 2D Context
         this.ctx.imageSmoothingEnabled = this.config.imageSmoothingEnabled || false;
+
+        // Register Systems
+        if (this.config.systems) {
+            for (let i in this.config.systems) {
+                this.ecs.addSystem(this.config.systems[i]);
+            }
+        }
 
         this.isInitialized = true;
     }

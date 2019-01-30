@@ -1,30 +1,46 @@
 import Entity from './Entity.js';
 import Component from './Component.js';
 import System from './System.js';
+import DoublyLinkedList from "../collections/DoublyLinkedList.js";
 
 class ECS {
     constructor() {
-        this.entities = [];
-        this.systems = {};
-        this.families = new Map();
+        this.entities = new DoublyLinkedList();
+        this.systems = new DoublyLinkedList();
         this.updating = false;
     }
 
-    addSystem(key, system) {
-        let value = this.systems[key]
-        if (value === null || value === undefined) {
-            this.systems[key] = system;
-        }
+    addSystem(system) {
+        this.systems.addLast(system);
+        this.systems.mergeSort(function (a, b) {
+            return a._createdOn < b._createdOn;
+        });
     }
 
-    removeSystem(key) {
-        let value = this.systems[key];
-        if (value !== null && value !== undefined) {
-            delete this.systems[key];
-        }
+    getSystem(type) {
+        return this.systems.findOne(function (a) {
+            return a.is(type);
+        })
+    }
+
+    removeSystem(system) {
+        this.systems.remove(system);
+    }
+
+    removeAllSystems() {
+        this.systems.removeAll();
     }
 
     addEntity(entity) {
+        this.entities.addLast(entity);
+    }
+
+    removeEntity(entity) {
+        this.entities.remove(entity);
+    }
+
+    removeAllEntities() {
+        this.entities.removeAll();
     }
 
     getEntityById(id) {
@@ -41,11 +57,14 @@ class ECS {
     removeEntity(entity) {
     }
 
-    update(time, ds) {
+    update(time, dt) {
         this.updating = true;
         // TODO: System Updates
-        console.log(time);
-        console.log(ds);
+        console.log(this.systems);
+        for (let node = this.systems.head; node; node = node.next) {
+            console.log(node.data);
+            node.data.update(this.entities, time, dt)
+        }
         this.updating = false;
     }
 }

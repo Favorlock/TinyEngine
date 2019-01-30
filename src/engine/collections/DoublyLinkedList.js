@@ -56,6 +56,15 @@ class DoublyLinkedList {
         }
     }
 
+    findOne(matcher) {
+        let tmp = this._head;
+        while (tmp) {
+            if (matcher(tmp._data)) break;
+            tmp = tmp._next;
+        }
+        return tmp ? tmp._data : null;
+    }
+
     empty() {
         this._head === null;
     }
