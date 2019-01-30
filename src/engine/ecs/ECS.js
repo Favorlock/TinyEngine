@@ -6,6 +6,7 @@ class ECS {
     constructor() {
         this.entities = [];
         this.systems = {};
+        this.families = new Map();
         this.updating = false;
     }
 
@@ -40,10 +41,11 @@ class ECS {
     removeEntity(entity) {
     }
 
-    update() {
+    update(time, ds) {
         this.updating = true;
         // TODO: System Updates
-        console.log(arguments);
+        console.log(time);
+        console.log(ds);
         this.updating = false;
     }
 }

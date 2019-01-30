@@ -1,5 +1,6 @@
 import ECS from "../ecs/ECS.js";
 import SemiFixedTimestep from "../tick/SemiFixedTimestep.js";
+import TypeRegistry from "../serialization/TypeRegistry.js";
 
 class Engine {
     constructor(config = {}) {
@@ -12,6 +13,7 @@ class Engine {
         this.ctx = this.canvas.getContext('2d');
         this.ecs = this.config.ecs || new ECS();
         this.tickHandler = new SemiFixedTimestep(this.canvas);
+        this.typeRegistry = new TypeRegistry();
 
         // Configure Canvas
         this.canvas.width = this.config.width || 1024;
