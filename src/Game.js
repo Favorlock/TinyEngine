@@ -1,5 +1,6 @@
 import Engine from './engine/core/Engine.js';
 import System from "./engine/ecs/System.js";
+import SemiFixedTimestep from "./engine/tick/SemiFixedTimestep.js";
 
 class RenderSystem extends System {
     constructor(ctx) {
@@ -32,6 +33,7 @@ window.onload = function () {
         ctx: ctx,
         width: 1024,
         height: 768,
+        tickHandler: new SemiFixedTimestep(canvas),
         systems: [
             new RenderSystem(ctx)
         ]

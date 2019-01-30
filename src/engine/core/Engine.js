@@ -27,6 +27,9 @@ class Engine {
             }
         }
 
+        window.addEventListener('focus', this.tickHandler.start.bind(this.tickHandler));
+        window.addEventListener('blur', this.tickHandler.stop.bind(this.tickHandler));
+
         this.isInitialized = true;
     }
 

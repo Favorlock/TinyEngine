@@ -13,6 +13,11 @@ class SemiFixedTimestep extends Timestep {
         this.accumulator = 0;
     }
 
+    start() {
+        this.lastTime = this.now();
+        super.start();
+    }
+
     dispatch() {
         let newTime = this.now();
         let frameTime = newTime - this.lastTime;
