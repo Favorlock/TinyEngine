@@ -23,8 +23,6 @@ class FixedTimestep extends Timestep {
         let nextTick = this.lastTick + this.tickLength;
         let numTicks = 0;
 
-        // console.log(tFrame);
-        // console.log(nextTick);
         if (tFrame > nextTick) {
             let timeSinceTick = tFrame - this.lastTick;
             numTicks = Math.floor(timeSinceTick / this.tickLength);

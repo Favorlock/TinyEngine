@@ -9,13 +9,11 @@ class Timestep extends EventDispatch {
     }
 
     start() {
-        console.log('Ticker started');
         this.isPlaying = true;
         this.requestId = BrowserUtils.requestAnimFrame(this.dispatch.bind(this), this.canvas);
     }
 
     stop() {
-        console.log('Ticker stopped');
         this.isPlaying = false;
         BrowserUtils.cancelAnimFrame(this.requestId);
     }
