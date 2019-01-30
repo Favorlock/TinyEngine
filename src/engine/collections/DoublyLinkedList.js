@@ -56,68 +56,101 @@ class DoublyLinkedList {
         }
     }
 
-    sort(comparator) {
-        if (!comparator) throw new Error('cannot sort, comparator required')
-        else {
-            this._head = this._sort(this._head, comparator);
-            this._tail = this._head;
-            while (this._tail && this._tail._next) {
-                this._tail = this._tail._next;
-            }
-        }
+    empty() {
+        this._head === null;
     }
 
-    _sort(node, comparator, depth = 0) {
-        if (!node || !node._next) return node;
-
-        if (depth == 0) {
-            // console.log(node);
-            let count = 0, n =  node;
-            while (n) {
-                // console.log(n);
-                if (count > 1000) break;
-                count += 1;
-                n = node._next;
-            }
-        }
-
-        let right = this._split(node);
-
-        let left = this._sort(node, comparator, depth + 1);
-        right = this._sort(right, comparator, depth + 1);
-
-        return this._merge(left, right, comparator);
+    removeAll() {
+        this._head = null;
+        this._tail = null;
     }
 
-    _split(head) {
-        let fast = head, slow = head;
-
-        while (fast._next && fast._next._next) {
-            fast = fast._next._next;
-            slow = slow._next;
-        }
-
-        let temp = slow._next;
-        slow._next = null;
-
-        return temp;
-    }
-
-    _merge(first, second, comparator) {
-        if (first == null) return second;
-        if (second == null) return first;
-        let res = comparator(first._data, second._data);
-        if (res < 0) {
-            first._next = this._merge(first._next, second, comparator);
-            first._next._prev = first;
-            first._prev = null;
-            return first;
+    swap(first, second) {
+        if (first._prev == second) {
+            first._prev = second._prev;
+            second._prev = first;
+            second._next = first._next;
+            first._next = second;
+        } else if (second._prev == first) {
+            second._prev = first._prev;
+            first._prev = second;
+            first._next = second._next;
+            second._next = first;
         } else {
-            second._next = this._merge(first, second._next, comparator);
-            second._next._prev = second;
-            second._prev = null;
-            return second;
+            let temp = first._prev;
+            first._prev = second._prev;
+            second._prev = temp;
+
+            temp = first._next;
+            first._next = second._next;
+            second._next = temp;
         }
+
+        if (this._head == first) this._head = second;
+        else if (this._head == second) this._head = first;
+
+        if (this._tail == first) this._tail = second;
+        else if (this._tail == second) this._tail = first;
+
+        if (first._prev) first._prev._next = first;
+        if (second._prev) second._prev._next = second;
+        if (first._next) first._next._prev = first;
+        if (second._next) second._next._prev = second;
+    }
+
+    mergeSort(comparator) {
+        if (this._head == this._tail) return;
+
+        let lists = [], start = this._head, end;
+        while (start) {
+            end = start;
+            while (end._next && comparator(end._data, end._next._data) <= 0) end = end._next;
+
+            let next = end._next;
+            start._prev = end._next = null;
+            lists.push(start);
+            start = next;
+        }
+
+        while (lists.length > 1) lists.push(this.merge(lists.shift(), lists.shift(), comparator));
+
+        this._tail = this._head = lists[0];
+        while (this._tail._next) this._tail = this._tail._next;
+    }
+
+    merge(head1, head2, comparator) {
+        let node, head;
+        if (comparator(head1._data, head2._data) <= 0) {
+            head = node = head1;
+            head1 = head1._next;
+        } else {
+            head = node = head2;
+            head2 = head2._next;
+        }
+
+        while (head1 && head2) {
+            if (comparator(head1._data, head2._data) <= 0) {
+                node._next = head1;
+                head1._prev = node;
+                node = head1;
+                head1 = head1._next;
+            } else {
+                node._next = head2;
+                head2._prev = node;
+                node = head2;
+                head2 = head2._next;
+            }
+        }
+
+        if (head1) {
+            node._next = head1;
+            head1._prev = node;
+        } else {
+            node._next = head2;
+            head2._prev = node;
+        }
+
+        return head;
     }
 
     get head() {
