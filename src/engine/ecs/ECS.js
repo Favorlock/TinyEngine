@@ -60,9 +60,7 @@ class ECS {
     update(time, dt) {
         this.updating = true;
         // TODO: System Updates
-        console.log(this.systems);
         for (let node = this.systems.head; node; node = node.next) {
-            console.log(node.data);
             node.data.update(this.entities, time, dt)
         }
         this.updating = false;
