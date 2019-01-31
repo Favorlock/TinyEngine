@@ -1,6 +1,6 @@
 class Entity {
     constructor() {
-        this.id = Entity.count();
+        this.id = Entity._count++;
         this.components = {}
     }
 
@@ -24,8 +24,5 @@ class Entity {
 }
 
 Entity._count = 0;
-Entity.count = function () {
-    return Entity.count += 1;
-}
 
 export default Entity;

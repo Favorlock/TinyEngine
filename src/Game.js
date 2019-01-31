@@ -6,20 +6,21 @@ import Component from "./engine/ecs/Component.js";
 import Entity from "./engine/ecs/Entity.js";
 import ECS from "./engine/ecs/ECS.js";
 import ImageUtils from "./engine/utils/ImageUtils.js";
+import MathUtil from "./engine/utils/MathUtil.js";
 
 class TransformComponent extends Component {
     constructor(scale = 1, rotation = 0) {
         super();
         this.scale = scale;
-        this._rotation = rotation;
+        this.rotation = MathUtil.degreesToRadians(rotation);
     }
 
-    get rotation() {
-        return this._rotation;
+    setRadianRotation(rotation) {
+        this.rotation = rotation;
     }
 
-    set rotation(rotation) {
-        this._rotation = rotation % 360;
+    setDegreeRotation(rotation) {
+        this.rotation = MathUtil.degreesToRadians(rotation);
     }
 }
 
@@ -40,6 +41,44 @@ class SpriteComponent extends Component {
         this.height = height;
         this.offsetX = offsetX;
         this.offsetY = offsetY;
+    }
+}
+
+class StateComponent extends Component {
+    constructor(src) {
+        super();
+        Object.assign(this, src);
+    }
+}
+
+class AnimatorComponent extends Component {
+    constructor(animations) {
+        super();
+        this.state = {};
+        this.animations = animations;
+    }
+}
+
+class SpriteSheet {
+    constructor(img, ) {
+        this.img = img;
+    }
+}
+
+class Animation {
+    constructor(src, ticksPerFrame, frames) {
+        this.src = src;
+        this.ticksPerFrame = ticksPerFrame;
+        this.frames = frames;
+    }
+}
+
+class AnimationFrame {
+    constructor(xOffset, yOffset, width, height) {
+        this.xOffset = xOffset;
+        this.yOffset = yOffset;
+        this.width = width;
+        this.height = height;
     }
 }
 
@@ -66,7 +105,7 @@ class SpriteRenderSystem extends System {
                 this.ctx.resetTransform();
                 this.ctx.translate(pos.x, pos.y);
                 this.ctx.translate(xOffset, yOffset);
-                this.ctx.rotate(tran.rotation * (Math.PI / 180));
+                this.ctx.rotate(tran.rotation);
                 this.ctx.scale(tran.scale, tran.scale);
 
                 // Draw sprite
@@ -99,22 +138,39 @@ class BackgroundRenderSystem extends System {
     }
 }
 
-class TweenSystem extends System {
+class JumpSystem extends System {
     constructor() {
         super();
-        this.rotationAmount = 2;
         this.scaleAmount = 0.25;
-        this.scaleTime = 0;
-        this.scaleTimeInterval = 0.05;
+        this.stepMax = Math.PI / 60;
     }
 
     update(entities, time, dt) {
         for (let node = entities; node; node = node.next) {
             let entity = node.data;
             let tran = entity.get(TransformComponent);
-            if (!tran) continue;
-            tran.rotation += this.rotationAmount;
-            tran.scale += Math.sin(this.scaleTime += this.scaleTimeInterval) * this.scaleAmount;
+            let state = entity.get(StateComponent);
+            if (tran && state && state.isJumping) {
+                if (!state.transformSnapshot) {
+                    state.transformSnapshot = Object.assign({}, tran);
+                    state.airTime = 0;
+                    state.airStep = Math.random() * this.stepMax;
+                }
+
+                tran.setRadianRotation(tran.rotation + state.airStep);
+                state.airTime += state.airStep;
+
+                tran.scale += (Math.sin(state.airTime) * this.scaleAmount) / (2 * Math.PI);
+                if (state.airTime >= 2 * Math.PI) {
+                    state.isJumping = false;
+
+                    Object.assign(tran, state.transformSnapshot);
+
+                    delete state.transformSnapshot;
+                    delete state.airTime;
+                    delete state.airStep;
+                }
+            }
         }
     }
 }
@@ -124,7 +180,8 @@ let ctx = canvas.getContext('2d');
 
 window.onload = function () {
     let assetManager = new AssetManager();
-    assetManager.queueDownload('skeleton', './assets/SkeletonIdle.png');
+    assetManager.queueDownload('skeleton.idle', './assets/SkeletonIdle.png');
+    assetManager.queueDownload('skeleton.walk', './assets/SkeletonWalk.png');
     assetManager.downloadAll(function () {
         let width = 1024, height = 768;
         let ecs = new ECS();
@@ -136,22 +193,38 @@ window.onload = function () {
         adjacent frames may bleed into the frame you are rendering when drawing
         from a single image using an offset.
          */
-        let skeletonFrames = ImageUtils.sliceImage(assetManager.cache['skeleton'], 24, 32, 0, 0);
+        let skeletonIdleFrames = ImageUtils.sliceImage(assetManager.cache['skeleton.idle'], 24, 32);
+        let skeletonWalkFrames = ImageUtils.sliceImage(assetManager.cache['skeleton.walk'], 22, 33);
 
         // Register all systems in the order to be executed.
-        ecs.addSystem(new TweenSystem());
+        ecs.addSystem(new JumpSystem());
         ecs.addSystem(new BackgroundRenderSystem(ctx));
         ecs.addSystem(new SpriteRenderSystem(ctx));
 
         // Create a new entity container.
         let skeleton = new Entity();
         // Add components to the entity.
-        skeleton.add(new TransformComponent(5, 90));
-        skeleton.add(new PositionComponent(width / 2, height / 2));
-        skeleton.add(new SpriteComponent(skeletonFrames[5], 24, 32));
+        skeleton.add(new TransformComponent(5));
+        skeleton.add(new PositionComponent(width / 3, height / 2));
+        skeleton.add(new SpriteComponent(skeletonWalkFrames[0], 24, 32));
+        skeleton.add(new StateComponent({ isJumping: true }))
+
+        // Create a new entity container.
+        let skeleton2 = new Entity();
+        // Add components to the entity.
+        skeleton2.add(new TransformComponent(3, 90));
+        skeleton2.add(new PositionComponent(2 * width / 3, height / 2));
+        skeleton2.add(new SpriteComponent(skeletonWalkFrames[0], 24, 32));
+        skeleton2.add(new StateComponent({ isJumping: true }))
+
+        console.log({
+            e1: skeleton.id,
+            e2: skeleton2.id
+        });
 
         // Register the entity with the Entity Component System engine.
         ecs.addEntity(skeleton);
+        ecs.addEntity(skeleton2);
 
         let config = {
             canvas: canvas,
@@ -162,6 +235,10 @@ window.onload = function () {
             ecs: ecs
         };
 
+        // Show the canvas when ready
+        canvas.style.display = 'inline';
+
+        // Start the game
         let engine = new Engine(config);
         engine.init();
         engine.start();
