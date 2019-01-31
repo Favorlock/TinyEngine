@@ -139,10 +139,6 @@ class SpriteRenderSystem extends System {
 
                     this.ctx.fillStyle = 'green';
                     this.ctx.fillRect(0, 0, 1, 1);
-
-                    this.ctx.font = '3px sans';
-                    this.ctx.fillStyle = 'black';
-                    this.ctx.fillText(`pos: ${pos.x},${pos.y}`, xOffset, yOffset - 1);
                 }
 
                 // Restore saved transform
@@ -274,27 +270,27 @@ window.onload = function () {
         ecs.addSystem(new BackgroundRenderSystem(ctx));
         ecs.addSystem(new SpriteRenderSystem(ctx, engine));
 
-        // for (let i = 0; i < 100; i++) {
-        //     // Create a new entity container.
-        //     let skeleton = new Entity();
-        //     // Add components to the entity.
-        //     skeleton.add(new TransformComponent(Math.max(Math.random(), 0.1) * 5, Math.random() * 360));
-        //     skeleton.add(new PositionComponent(Math.floor(Math.random() * width), Math.floor(Math.random() * height)));
-        //     skeleton.add(new SpriteComponent(skeletonWalkFrames[0], 22, 33));
-        //     skeleton.add(new StateComponent({ isJumping: true }))
+        for (let i = 0; i < 100; i++) {
+            // Create a new entity container.
+            let skeleton = new Entity();
+            // Add components to the entity.
+            skeleton.add(new TransformComponent(Math.max(Math.random(), 0.1) * 5, Math.random() * 360));
+            skeleton.add(new PositionComponent(Math.floor(Math.random() * width), Math.floor(Math.random() * height)));
+            skeleton.add(new SpriteComponent(skeletonWalkFrames[0], 22, 33));
+            skeleton.add(new StateComponent({ isJumping: true }))
+
+            ecs.addEntity(skeleton);
+        }
+
+        // // Create a new entity container.
+        // let skeleton = new Entity();
+        // // Add components to the entity.
+        // skeleton.add(new TransformComponent(5, 0));
+        // skeleton.add(new PositionComponent(width / 2, height / 2));
+        // skeleton.add(new SpriteComponent(skeletonWalkFrames[0], 22, 33));
+        // skeleton.add(new StateComponent({isJumping: true}));
         //
-        //     ecs.addEntity(skeleton);
-        // }
-
-        // Create a new entity container.
-        let skeleton = new Entity();
-        // Add components to the entity.
-        skeleton.add(new TransformComponent(5, 0));
-        skeleton.add(new PositionComponent(width / 2, height / 2));
-        skeleton.add(new SpriteComponent(skeletonWalkFrames[0], 22, 33));
-        skeleton.add(new StateComponent({isJumping: true}));
-
-        ecs.addEntity(skeleton);
+        // ecs.addEntity(skeleton);
 
         engine.start();
     });
