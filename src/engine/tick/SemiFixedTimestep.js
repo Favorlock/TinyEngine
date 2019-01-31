@@ -1,10 +1,8 @@
 import Timestep from "./Timestep.js";
 import BrowserUtils from "../utils/BrowserUtils.js";
 
-const dt = 10;
-
 class SemiFixedTimestep extends Timestep {
-    constructor(canvas, maxFrameTime = 1000 / 60) {
+    constructor(canvas, maxFrameTime = 1 / 60) {
         super();
         this.canvas = canvas;
         this.maxFrameTime = maxFrameTime;
@@ -14,25 +12,24 @@ class SemiFixedTimestep extends Timestep {
     }
 
     start() {
-        this.lastTime = this.now();
+        this.lastTime = performance.now();
         super.start();
     }
 
-    dispatch() {
-        let newTime = this.now();
-        let frameTime = newTime - this.lastTime;
+    dispatch(tFrame) {
+        let frameTime = (tFrame - this.lastTime) / 1000;
+        this.lastTime = tFrame;
 
         if (frameTime > this.maxFrameTime) {
             frameTime = this.maxFrameTime;
         }
 
-        this.lastTime = newTime;
         this.accumulator += frameTime;
 
-        while (this.accumulator >= dt) {
-            super.queueUpdates(this.time, dt);
+        while (this.accumulator >= this.maxFrameTime) {
+            super.queueUpdates(this.time, frameTime);
             this.accumulator -= this.maxFrameTime;
-            this.time += this.maxFrameTime / 1000;
+            this.time += this.maxFrameTime;
         }
 
         // TODO: Implement ECS system staging
@@ -40,10 +37,6 @@ class SemiFixedTimestep extends Timestep {
         if (this.isPlaying) {
             this.requestId = BrowserUtils.requestAnimFrame(this.dispatch.bind(this), this.canvas);
         }
-    }
-
-    now() {
-        return window.performance.now();
     }
 }
 

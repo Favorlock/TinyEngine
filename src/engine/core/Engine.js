@@ -5,6 +5,7 @@ class Engine {
     constructor(config = {}) {
         this.config = config;
         this.isInitialized = false;
+        this.fps = 0;
     }
 
     init() {
@@ -35,9 +36,16 @@ class Engine {
         this.isInitialized = true;
     }
 
+    update(time, dt) {
+        let s = performance.now();
+        this.ecs.update(time, dt);
+        let f = performance.now();
+        this.fps = 1000 / (f - s);
+    }
+
     start() {
         if (this.isInitialized) {
-            this.tickHandler.add(this.ecs.update, this.ecs);
+            this.tickHandler.add(this.update, this);
             this.tickHandler.start();
         }
     }

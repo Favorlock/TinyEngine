@@ -13,6 +13,10 @@ class TransformComponent extends Component {
         super();
         this.scale = scale;
         this.rotation = MathUtil.degreesToRadians(rotation);
+        this.snapshot = {
+            scale: scale,
+            rotation: MathUtil.degreesToRadians(rotation)
+        }
     }
 
     setRadianRotation(rotation) {
@@ -21,6 +25,17 @@ class TransformComponent extends Component {
 
     setDegreeRotation(rotation) {
         this.rotation = MathUtil.degreesToRadians(rotation);
+    }
+
+    save() {
+        this.snapshot = {
+            scale: this.scale,
+            rotation: this.rotation
+        }
+    }
+
+    restore() {
+        Object.assign(this, this.snapshot);
     }
 }
 
@@ -105,8 +120,8 @@ class SpriteRenderSystem extends System {
                 this.ctx.resetTransform();
                 this.ctx.translate(pos.x, pos.y);
                 this.ctx.translate(xOffset, yOffset);
-                this.ctx.rotate(tran.rotation);
-                this.ctx.scale(tran.scale, tran.scale);
+                if (tran.rotation != 0) this.ctx.rotate(tran.rotation);
+                if (tran.scale != 1) this.ctx.scale(tran.scale, tran.scale);
 
                 // Draw sprite
                 this.ctx.drawImage(sprite.img, sprite.offsetX, sprite.offsetY, sprite.width, sprite.height,
@@ -141,7 +156,7 @@ class BackgroundRenderSystem extends System {
 class JumpSystem extends System {
     constructor() {
         super();
-        this.scaleAmount = 0.25;
+        this.scaleSeed = 0.25;
         this.stepMax = Math.PI / 60;
     }
 
@@ -151,24 +166,23 @@ class JumpSystem extends System {
             let tran = entity.get(TransformComponent);
             let state = entity.get(StateComponent);
             if (tran && state && state.isJumping) {
-                if (!state.transformSnapshot) {
-                    state.transformSnapshot = Object.assign({}, tran);
-                    state.airTime = 0;
-                    state.airStep = Math.max(Math.random(), 0.1) * this.stepMax;
+                if (!state.jumpTime) {
+                    tran.save();
+                    state.jumpTime = 0;
+                    state.jumpStep = Math.max(Math.random(), 0.2) * this.stepMax;
                 }
 
-                tran.setRadianRotation(tran.rotation + state.airStep);
-                state.airTime += state.airStep;
+                tran.setRadianRotation(tran.rotation + state.jumpStep);
+                state.jumpTime += state.jumpStep;
 
-                tran.scale += (Math.sin(state.airTime) * this.scaleAmount) / (2 * Math.PI);
-                if (state.airTime >= 2 * Math.PI) {
+                tran.scale += (Math.sin(state.jumpTime) * this.scaleSeed) / (2 * Math.PI);
+                if (state.jumpTime >= 2 * Math.PI) {
                     state.isJumping = false;
 
-                    Object.assign(tran, state.transformSnapshot);
+                    tran.restore();
 
-                    delete state.transformSnapshot;
-                    delete state.airTime;
-                    delete state.airStep;
+                    delete state.jumpTime;
+                    delete state.jumpStep;
                 }
             }
         }
