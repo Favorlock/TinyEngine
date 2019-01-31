@@ -154,7 +154,7 @@ class JumpSystem extends System {
                 if (!state.transformSnapshot) {
                     state.transformSnapshot = Object.assign({}, tran);
                     state.airTime = 0;
-                    state.airStep = Math.random() * this.stepMax;
+                    state.airStep = Math.max(Math.random(), 0.1) * this.stepMax;
                 }
 
                 tran.setRadianRotation(tran.rotation + state.airStep);
@@ -201,30 +201,17 @@ window.onload = function () {
         ecs.addSystem(new BackgroundRenderSystem(ctx));
         ecs.addSystem(new SpriteRenderSystem(ctx));
 
-        // Create a new entity container.
-        let skeleton = new Entity();
-        // Add components to the entity.
-        skeleton.add(new TransformComponent(5));
-        skeleton.add(new PositionComponent(width / 3, height / 2));
-        skeleton.add(new SpriteComponent(skeletonWalkFrames[0], 24, 32));
-        skeleton.add(new StateComponent({ isJumping: true }))
+        for (let i = 0; i < 100; i++) {
+            // Create a new entity container.
+            let skeleton = new Entity();
+            // Add components to the entity.
+            skeleton.add(new TransformComponent(Math.max(Math.random(), 0.1) * 5, Math.random() * 360));
+            skeleton.add(new PositionComponent(Math.floor(Math.random() * width), Math.floor(Math.random() * height)));
+            skeleton.add(new SpriteComponent(skeletonWalkFrames[0], 24, 32));
+            skeleton.add(new StateComponent({ isJumping: true }))
 
-        // Create a new entity container.
-        let skeleton2 = new Entity();
-        // Add components to the entity.
-        skeleton2.add(new TransformComponent(3, 90));
-        skeleton2.add(new PositionComponent(2 * width / 3, height / 2));
-        skeleton2.add(new SpriteComponent(skeletonWalkFrames[0], 24, 32));
-        skeleton2.add(new StateComponent({ isJumping: true }))
-
-        console.log({
-            e1: skeleton.id,
-            e2: skeleton2.id
-        });
-
-        // Register the entity with the Entity Component System engine.
-        ecs.addEntity(skeleton);
-        ecs.addEntity(skeleton2);
+            ecs.addEntity(skeleton);
+        }
 
         let config = {
             canvas: canvas,
