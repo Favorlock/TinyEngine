@@ -15,7 +15,6 @@ class ECS {
         this.systems.mergeSort(function (a, b) {
             return a._createdOn > b._createdOn;
         });
-        console.log(this.systems);
     }
 
     getSystem(type) {
@@ -60,7 +59,6 @@ class ECS {
 
     update(time, dt) {
         this.updating = true;
-        // TODO: System Updates
         for (let node = this.systems.head; node; node = node.next) {
             node.data.update(this.entities.head, time, dt)
         }

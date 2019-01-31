@@ -28,7 +28,7 @@ class FixedTimestep extends Timestep {
             numTicks = Math.floor(timeSinceTick / this.tickLength);
         }
 
-        super.dispatch(numTicks);
+        super.dispatch(tFrame / 1000, numTicks);
     }
 
     queueUpdates(numTicks) {

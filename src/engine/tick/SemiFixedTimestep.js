@@ -32,7 +32,7 @@ class SemiFixedTimestep extends Timestep {
         while (this.accumulator >= dt) {
             super.queueUpdates(this.time, dt);
             this.accumulator -= this.maxFrameTime;
-            this.time += this.maxFrameTime;
+            this.time += this.maxFrameTime / 1000;
         }
 
         // TODO: Implement ECS system staging

@@ -1,23 +1,25 @@
+import ObjectUtils from "../utils/ObjectUtils.js";
+
 class AssetManager {
     constructor() {
         this.successCount = 0;
         this.errorCount = 0;
-        this.cache = [];
-        this.downloadQueue = [];
+        this.cache = {};
+        this.downloadQueue = {};
     }
 
-    queueDownload(path) {
-        this.downloadQueue.push(path);
+    queueDownload(key, path = key) {
+        this.downloadQueue[key] = path;
     }
 
     isDone() {
-        return this.downloadQueue.length === this.successCount + this.errorCount;
+        return ObjectUtils.getLength(this.downloadQueue) === this.successCount + this.errorCount;
     }
 
     downloadAll(callback) {
-        for (let i = 0; i < this.downloadQueue.length; i++) {
-            let path = this.downloadQueue[i];
+        for (let property in this.downloadQueue) {
             let img = new Image();
+
             img.addEventListener('load', function () {
                 this.successCount++;
                 if (this.isDone()) callback();
@@ -28,8 +30,8 @@ class AssetManager {
                 if (this.isDone()) callback();
             }.bind(this))
 
-            img.src = path;
-            this.cache[path] = img;
+            img.src = this.downloadQueue[property];
+            this.cache[property] = img;
         }
     }
 }
