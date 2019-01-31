@@ -2,7 +2,7 @@ import Engine from './engine/core/Engine.js';
 import System from "./engine/ecs/System.js";
 import SemiFixedTimestep from "./engine/tick/SemiFixedTimestep.js";
 
-class RenderSystem extends System {
+class BackgroundRenderSystem extends System {
     constructor(ctx) {
         super();
         this.ctx = ctx;
@@ -18,7 +18,7 @@ class RenderSystem extends System {
 
         this.ctx.fillStyle = `hsl(${this.hue}, ${this.saturation}%, ${this.lightness}%)`;
         this.ctx.fillRect(0, 0, canvas.width, canvas.height);
-        this.hue += 0.5;
+        this.hue = (this.hue + dt / 20) % 360;
 
         this.ctx.restore();
     }
@@ -35,7 +35,7 @@ window.onload = function () {
         height: 768,
         tickHandler: new SemiFixedTimestep(canvas),
         systems: [
-            new RenderSystem(ctx)
+            new BackgroundRenderSystem(ctx)
         ]
     };
 

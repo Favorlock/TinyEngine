@@ -27,8 +27,10 @@ class Engine {
             }
         }
 
-        window.addEventListener('focus', this.tickHandler.start.bind(this.tickHandler));
-        window.addEventListener('blur', this.tickHandler.stop.bind(this.tickHandler));
+        document.addEventListener('visibilitychange', function (e) {
+            if (document.hidden) this.tickHandler.start.bind(this.tickHandler);
+            else this.tickHandler.stop.bind(this.tickHandler)
+        }.bind(this))
 
         this.isInitialized = true;
     }
