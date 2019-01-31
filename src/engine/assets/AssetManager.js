@@ -1,4 +1,4 @@
-import ObjectUtils from "../utils/ObjectUtils.js";
+import ObjectUtils from '../utils/ObjectUtils.js';
 
 class AssetManager {
     constructor() {
@@ -23,12 +23,12 @@ class AssetManager {
             img.addEventListener('load', function () {
                 this.successCount++;
                 if (this.isDone()) callback();
-            }.bind(this))
+            }.bind(this));
 
             img.addEventListener('error', function () {
                 this.errorCount++;
                 if (this.isDone()) callback();
-            }.bind(this))
+            }.bind(this));
 
             img.src = this.downloadQueue[property];
             this.cache[property] = img;

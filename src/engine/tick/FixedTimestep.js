@@ -1,4 +1,4 @@
-import Timestep from "./Timestep.js";
+import Timestep from './Timestep.js';
 
 class FixedTimestep extends Timestep {
     constructor(canvas, tickLength = 1000 / 50) {

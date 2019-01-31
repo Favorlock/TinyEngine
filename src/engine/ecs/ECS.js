@@ -1,7 +1,7 @@
 import Entity from './Entity.js';
 import Component from './Component.js';
 import System from './System.js';
-import DoublyLinkedList from "../collections/DoublyLinkedList.js";
+import DoublyLinkedList from '../collections/DoublyLinkedList.js';
 
 class ECS {
     constructor() {
@@ -20,7 +20,7 @@ class ECS {
     getSystem(type) {
         return this.systems.findOne(function (a) {
             return a.is(type);
-        })
+        });
     }
 
     removeSystem(system) {
@@ -60,7 +60,7 @@ class ECS {
     update(time, dt) {
         this.updating = true;
         for (let node = this.systems.head; node; node = node.next) {
-            node.data.update(this.entities.head, time, dt)
+            node.data.update(this.entities.head, time, dt);
         }
         this.updating = false;
     }

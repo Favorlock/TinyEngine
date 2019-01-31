@@ -4,7 +4,8 @@ function getLength(obj) {
     return count;
 }
 
-class ObjectUtils {}
+class ObjectUtils {
+}
 
 ObjectUtils.getLength = getLength;
 

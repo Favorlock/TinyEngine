@@ -1,7 +1,7 @@
 class Entity {
     constructor() {
         this.id = Entity._count++;
-        this.components = {}
+        this.components = {};
     }
 
     add(component) {
@@ -19,7 +19,7 @@ class Entity {
     toJSON() {
         return {
             components: this.components
-        }
+        };
     }
 }
 

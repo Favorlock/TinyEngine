@@ -1,5 +1,5 @@
-import EventDispatch from "../events/EventDispatch.js";
-import BrowserUtils from "../utils/BrowserUtils.js";
+import EventDispatch from '../events/EventDispatch.js';
+import BrowserUtils from '../utils/BrowserUtils.js';
 
 class Timestep extends EventDispatch {
     constructor(canvas) {
@@ -31,4 +31,4 @@ class Timestep extends EventDispatch {
     }
 }
 
-export default Timestep
+export default Timestep;

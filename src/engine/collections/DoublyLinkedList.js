@@ -180,7 +180,7 @@ class DoublyLinkedList {
             arr.push(JSON.stringify(temp._data));
             temp = temp._next;
         }
-        return arr.toString()
+        return arr.toString();
     }
 }
 

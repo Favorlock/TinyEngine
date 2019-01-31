@@ -6,7 +6,7 @@ function _requestAnimFrame() {
         window.msRequestAnimationFrame ||
         function (callback, element) {
             window.setTimeout(callback, 1000 / 60);
-        }
+        };
 }
 
 function _cancelAnimFrame() {
@@ -16,10 +16,11 @@ function _cancelAnimFrame() {
         window.oCancelAnimationFrame ||
         window.msCancelAnimationFrame ||
         function (id) {
-        }
+        };
 }
 
-class BrowserUtils {}
+class BrowserUtils {
+}
 
 BrowserUtils.requestAnimFrame = _requestAnimFrame().bind(null);
 BrowserUtils.cancelAnimFrame = _cancelAnimFrame().bind(null);

@@ -11,8 +11,8 @@ function sliceImage(src,
     let nTilesY = Math.floor(src.height / frameHeight);
     let nTilesX = Math.floor(src.width / frameWidth);
 
-    let nOffsetY = Math.floor( yOffset / frameHeight);
-    let nOffsetX = Math.floor( xOffset / frameWidth);
+    let nOffsetY = Math.floor(yOffset / frameHeight);
+    let nOffsetX = Math.floor(xOffset / frameWidth);
     canvas.width = frameWidth;
     canvas.height = frameHeight;
 

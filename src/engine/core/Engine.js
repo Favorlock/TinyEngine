@@ -1,5 +1,5 @@
-import ECS from "../ecs/ECS.js";
-import FixedTimestep from "../tick/FixedTimestep.js";
+import ECS from '../ecs/ECS.js';
+import FixedTimestep from '../tick/FixedTimestep.js';
 
 class Engine {
     constructor(config = {}) {
@@ -9,7 +9,7 @@ class Engine {
     }
 
     init() {
-        this.canvas = this.config.canvas || document.getElementById("viewport");
+        this.canvas = this.config.canvas || document.getElementById('viewport');
         this.ctx = this.config.ctx || this.canvas.getContext('2d');
         this.ecs = this.config.ecs || new ECS();
         this.tickHandler = this.config.tickHandler || new FixedTimestep(this.canvas);
@@ -30,8 +30,8 @@ class Engine {
 
         document.addEventListener('visibilitychange', function (e) {
             if (document.hidden) this.tickHandler.start.bind(this.tickHandler);
-            else this.tickHandler.stop.bind(this.tickHandler)
-        }.bind(this))
+            else this.tickHandler.stop.bind(this.tickHandler);
+        }.bind(this));
 
         this.isInitialized = true;
     }

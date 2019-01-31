@@ -1,12 +1,12 @@
 import Engine from './engine/core/Engine.js';
 import System from './engine/ecs/System.js';
 import SemiFixedTimestep from './engine/tick/SemiFixedTimestep.js';
-import AssetManager from './engine/assets/AssetManager.js'
-import Component from "./engine/ecs/Component.js";
-import Entity from "./engine/ecs/Entity.js";
-import ECS from "./engine/ecs/ECS.js";
-import ImageUtils from "./engine/utils/ImageUtils.js";
-import MathUtil from "./engine/utils/MathUtil.js";
+import AssetManager from './engine/assets/AssetManager.js';
+import Component from './engine/ecs/Component.js';
+import Entity from './engine/ecs/Entity.js';
+import ECS from './engine/ecs/ECS.js';
+import ImageUtils from './engine/utils/ImageUtils.js';
+import MathUtils from './engine/utils/MathUtils.js';
 
 let debug = false;
 
@@ -14,11 +14,12 @@ class TransformComponent extends Component {
     constructor(scale = 1, rotation = 0) {
         super();
         this.scale = scale;
-        this.rotation = MathUtil.degreesToRadians(rotation);
+        this.rotation = MathUtils.degreesToRadians(rotation);
         this.snapshot = {
             scale: scale,
-            rotation: MathUtil.degreesToRadians(rotation)
-        }
+            rotation: MathUtils.degreesToRadians(rotation)
+        };
+
     }
 
     setRadianRotation(rotation) {
@@ -26,14 +27,14 @@ class TransformComponent extends Component {
     }
 
     setDegreeRotation(rotation) {
-        this.rotation = MathUtil.degreesToRadians(rotation);
+        this.rotation = MathUtils.degreesToRadians(rotation);
     }
 
     save() {
         this.snapshot = {
             scale: this.scale,
             rotation: this.rotation
-        }
+        };
     }
 
     restore() {
@@ -77,7 +78,7 @@ class AnimatorComponent extends Component {
 }
 
 class SpriteSheet {
-    constructor(img, ) {
+    constructor(img) {
         this.img = img;
     }
 }
@@ -255,7 +256,7 @@ window.onload = function () {
         skeleton.add(new TransformComponent(5, 0));
         skeleton.add(new PositionComponent(width / 2, height / 2));
         skeleton.add(new SpriteComponent(skeletonWalkFrames[0], 22, 33));
-        skeleton.add(new StateComponent({ isJumping: true }))
+        skeleton.add(new StateComponent({isJumping: true}));
 
         ecs.addEntity(skeleton);
 
@@ -275,5 +276,5 @@ window.onload = function () {
         let engine = new Engine(config);
         engine.init();
         engine.start();
-    })
+    });
 };

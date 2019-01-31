@@ -14,7 +14,7 @@ function _getClassNames(obj) {
 
 function _isInstance(obj, type) {
     let names = _getClassNames(obj);
-    for (let i = 0, other; other = names[i]; i++){
+    for (let i = 0, other; other = names[i]; i++) {
         if (other === type) {
             return true;
         }
@@ -22,7 +22,8 @@ function _isInstance(obj, type) {
     return false;
 }
 
-class ClassUtils {}
+class ClassUtils {
+}
 
 ClassUtils.getClassNames = _getClassNames;
 ClassUtils.isInstance = _isInstance;

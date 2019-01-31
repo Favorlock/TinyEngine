@@ -1,5 +1,5 @@
-import Timestep from "./Timestep.js";
-import BrowserUtils from "../utils/BrowserUtils.js";
+import Timestep from './Timestep.js';
+import BrowserUtils from '../utils/BrowserUtils.js';
 
 class SemiFixedTimestep extends Timestep {
     constructor(canvas, maxFrameTime = 1 / 60) {
