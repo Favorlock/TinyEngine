@@ -8,6 +8,8 @@ import ECS from "./engine/ecs/ECS.js";
 import ImageUtils from "./engine/utils/ImageUtils.js";
 import MathUtil from "./engine/utils/MathUtil.js";
 
+let debug = false;
+
 class TransformComponent extends Component {
     constructor(scale = 1, rotation = 0) {
         super();
@@ -119,13 +121,27 @@ class SpriteRenderSystem extends System {
                 // Set new transformation
                 this.ctx.resetTransform();
                 this.ctx.translate(pos.x, pos.y);
-                this.ctx.translate(xOffset, yOffset);
+                this.ctx.translate(xOffset / 2, yOffset / 2);
                 if (tran.rotation != 0) this.ctx.rotate(tran.rotation);
                 if (tran.scale != 1) this.ctx.scale(tran.scale, tran.scale);
 
                 // Draw sprite
                 this.ctx.drawImage(sprite.img, sprite.offsetX, sprite.offsetY, sprite.width, sprite.height,
                     xOffset, yOffset, sprite.width, sprite.height);
+
+                if (debug) {
+                    this.ctx.strokeStyle = 'navy';
+                    this.ctx.lineWidth = 0.25;
+                    this.ctx.strokeRect(xOffset, yOffset, sprite.width, sprite.height);
+
+                    this.ctx.fillStyle = 'green';
+                    this.ctx.fillRect(0, 0, 1, 1);
+
+                    this.ctx.font = '3px sans';
+                    this.ctx.fillStyle = 'black';
+                    this.ctx.fillText(`pos: ${pos.x},${pos.y}`, xOffset, yOffset - 1);
+                }
+
                 // Restore saved transform
                 this.ctx.restore();
             }
@@ -143,13 +159,15 @@ class BackgroundRenderSystem extends System {
     }
 
     update(entities, time, dt) {
+        this.ctx.save();
+        this.ctx.resetTransform();
         this.ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         this.ctx.fillStyle = `hsl(${this.hue}, ${this.saturation}%, ${this.lightness}%)`;
         this.ctx.fillRect(0, 0, canvas.width, canvas.height);
-        this.ctx.resetTransform();
+        this.ctx.restore();
 
-        this.hue = (this.hue + dt / 20) % 360;
+        this.hue = (this.hue + dt * (1 / dt)) % 360;
     }
 }
 
@@ -169,7 +187,7 @@ class JumpSystem extends System {
                 if (!state.jumpTime) {
                     tran.save();
                     state.jumpTime = 0;
-                    state.jumpStep = Math.max(Math.random(), 0.2) * this.stepMax;
+                    state.jumpStep = Math.max(Math.random(), 0.05) * this.stepMax;
                 }
 
                 tran.setRadianRotation(tran.rotation + state.jumpStep);
@@ -191,6 +209,10 @@ class JumpSystem extends System {
 
 let canvas = document.getElementById('viewport');
 let ctx = canvas.getContext('2d');
+
+window.addEventListener('keydown', function (e) {
+    if (e.key === '`') debug = !debug;
+});
 
 window.onload = function () {
     let assetManager = new AssetManager();
@@ -215,17 +237,27 @@ window.onload = function () {
         ecs.addSystem(new BackgroundRenderSystem(ctx));
         ecs.addSystem(new SpriteRenderSystem(ctx));
 
-        for (let i = 0; i < 100; i++) {
-            // Create a new entity container.
-            let skeleton = new Entity();
-            // Add components to the entity.
-            skeleton.add(new TransformComponent(Math.max(Math.random(), 0.1) * 5, Math.random() * 360));
-            skeleton.add(new PositionComponent(Math.floor(Math.random() * width), Math.floor(Math.random() * height)));
-            skeleton.add(new SpriteComponent(skeletonWalkFrames[0], 24, 32));
-            skeleton.add(new StateComponent({ isJumping: true }))
+        // for (let i = 0; i < 100; i++) {
+        //     // Create a new entity container.
+        //     let skeleton = new Entity();
+        //     // Add components to the entity.
+        //     skeleton.add(new TransformComponent(Math.max(Math.random(), 0.1) * 5, Math.random() * 360));
+        //     skeleton.add(new PositionComponent(Math.floor(Math.random() * width), Math.floor(Math.random() * height)));
+        //     skeleton.add(new SpriteComponent(skeletonWalkFrames[0], 22, 33));
+        //     skeleton.add(new StateComponent({ isJumping: true }))
+        //
+        //     ecs.addEntity(skeleton);
+        // }
 
-            ecs.addEntity(skeleton);
-        }
+        // Create a new entity container.
+        let skeleton = new Entity();
+        // Add components to the entity.
+        skeleton.add(new TransformComponent(5, 0));
+        skeleton.add(new PositionComponent(width / 2, height / 2));
+        skeleton.add(new SpriteComponent(skeletonWalkFrames[0], 22, 33));
+        skeleton.add(new StateComponent({ isJumping: true }))
+
+        ecs.addEntity(skeleton);
 
         let config = {
             canvas: canvas,
