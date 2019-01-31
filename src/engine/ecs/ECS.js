@@ -13,8 +13,9 @@ class ECS {
     addSystem(system) {
         this.systems.addLast(system);
         this.systems.mergeSort(function (a, b) {
-            return a._createdOn < b._createdOn;
+            return a._createdOn > b._createdOn;
         });
+        console.log(this.systems);
     }
 
     getSystem(type) {
@@ -61,7 +62,7 @@ class ECS {
         this.updating = true;
         // TODO: System Updates
         for (let node = this.systems.head; node; node = node.next) {
-            node.data.update(this.entities, time, dt)
+            node.data.update(this.entities.head, time, dt)
         }
         this.updating = false;
     }
