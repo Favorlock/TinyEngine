@@ -7,6 +7,7 @@ import Entity from './engine/ecs/Entity.js';
 import ECS from './engine/ecs/ECS.js';
 import ImageUtils from './engine/utils/ImageUtils.js';
 import MathUtils from './engine/utils/MathUtils.js';
+import InputManager from './engine/input/InputManager.js';
 
 let debug = false;
 
@@ -101,9 +102,10 @@ class AnimationFrame {
 }
 
 class SpriteRenderSystem extends System {
-    constructor(ctx) {
+    constructor(ctx, engine) {
         super();
         this.ctx = ctx;
+        this.engine = engine;
     }
 
     update(entities, time, dt) {
@@ -147,6 +149,8 @@ class SpriteRenderSystem extends System {
                 this.ctx.restore();
             }
         }
+
+
     }
 }
 
@@ -177,6 +181,8 @@ class JumpSystem extends System {
         super();
         this.scaleSeed = 0.25;
         this.stepMax = Math.PI / 60;
+        this.stepMultiple = 2.5;
+        this.stepMinBound = 0.8
     }
 
     update(entities, time, dt) {
@@ -188,7 +194,7 @@ class JumpSystem extends System {
                 if (!state.jumpTime) {
                     tran.save();
                     state.jumpTime = 0;
-                    state.jumpStep = Math.max(Math.random(), 0.05) * this.stepMax;
+                    state.jumpStep = Math.max(Math.random(), this.stepMinBound) * this.stepMultiple * this.stepMax;
                 }
 
                 tran.setRadianRotation(tran.rotation + state.jumpStep);
@@ -208,12 +214,25 @@ class JumpSystem extends System {
     }
 }
 
+class DebugSystem extends System {
+    constructor() {
+        super();
+        this.dirty = false;
+    }
+
+    update() {
+        if (InputManager.getKeyboard('`', 'win') && !this.dirty) {
+            debug = !debug;
+            this.dirty = true;
+        } else if (!InputManager.getKeyboard('`', 'win') && this.dirty) {
+            this.dirty = false;
+        }
+    }
+}
+
 let canvas = document.getElementById('viewport');
 let ctx = canvas.getContext('2d');
-
-window.addEventListener('keydown', function (e) {
-    if (e.key === '`') debug = !debug;
-});
+InputManager.init(canvas);
 
 window.onload = function () {
     let assetManager = new AssetManager();
@@ -233,10 +252,27 @@ window.onload = function () {
         let skeletonIdleFrames = ImageUtils.sliceImage(assetManager.cache['skeleton.idle'], 24, 32);
         let skeletonWalkFrames = ImageUtils.sliceImage(assetManager.cache['skeleton.walk'], 22, 33);
 
+        let config = {
+            canvas: canvas,
+            ctx: ctx,
+            width: width,
+            height: height,
+            tickHandler: new SemiFixedTimestep(canvas),
+            ecs: ecs
+        };
+
+        // Show the canvas when ready
+        canvas.style.display = 'inline';
+
+        // Start the game
+        let engine = new Engine(config);
+        engine.init();
+
         // Register all systems in the order to be executed.
+        ecs.addSystem(new DebugSystem())
         ecs.addSystem(new JumpSystem());
         ecs.addSystem(new BackgroundRenderSystem(ctx));
-        ecs.addSystem(new SpriteRenderSystem(ctx));
+        ecs.addSystem(new SpriteRenderSystem(ctx, engine));
 
         // for (let i = 0; i < 100; i++) {
         //     // Create a new entity container.
@@ -260,21 +296,6 @@ window.onload = function () {
 
         ecs.addEntity(skeleton);
 
-        let config = {
-            canvas: canvas,
-            ctx: ctx,
-            width: width,
-            height: height,
-            tickHandler: new SemiFixedTimestep(canvas),
-            ecs: ecs
-        };
-
-        // Show the canvas when ready
-        canvas.style.display = 'inline';
-
-        // Start the game
-        let engine = new Engine(config);
-        engine.init();
         engine.start();
     });
 };
