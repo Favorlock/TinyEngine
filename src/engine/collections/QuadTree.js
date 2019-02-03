@@ -32,10 +32,8 @@ class QuadTree {
     }
 }
 
-QuadTree.prototype.root = null;
-
 class Node {
-    constructor(bounds, depth, maxDepth, maxChildren) {
+    constructor(bounds, depth = 0, maxDepth = 4, maxChildren = 4) {
         this._bounds = bounds;
         this.children = [];
         this.nodes = [];
@@ -106,28 +104,28 @@ class Node {
         let bx_b_w_h = bx + b_w_h;
         let by_b_h_h = by + b_h_h;
 
-        this.nodes[Node.TOP_LEFT] = new this._classConstructor({
+        this.nodes[Node.TOP_LEFT] = new this.constructor({
             x: bx,
             y: by,
             width: b_w_h,
             height: b_h_h
         }, depth, this._maxDepth, this._maxChildren);
 
-        this.nodes[Node.TOP_RIGHT] = new this._classConstructor({
+        this.nodes[Node.TOP_RIGHT] = new this.constructor({
             x: bx_b_w_h,
             y: by,
             width: b_w_h,
             height: b_h_h
         }, depth, this._maxDepth, this._maxChildren);
 
-        this.nodes[Node.BOTTOM_LEFT] = new this._classConstructor({
+        this.nodes[Node.BOTTOM_LEFT] = new this.constructor({
             x: bx,
             y: by_b_h_h,
             width: b_w_h,
             height: b_h_h
         }, depth, this._maxDepth, this._maxChildren);
 
-        this.nodes[Node.BOTTOM_RIGHT] = new this._classConstructor({
+        this.nodes[Node.BOTTOM_RIGHT] = new this.constructor({
             x: bx_b_w_h,
             y: by_b_h_h,
             width: b_w_h,
@@ -144,17 +142,6 @@ class Node {
         this.nodes.length = 0;
     }
 }
-
-Node.prototype.nodes = null;
-Node.prototype._classConstructor = Node;
-
-Node.prototype.children = null;
-Node.prototype._bounds = null;
-
-Node.prototype._depth = 0;
-
-Node.prototype._maxChildren = 4;
-Node.prototype._maxDepth = 4;
 
 Node.TOP_LEFT = 0;
 Node.TOP_RIGHT = 1;
@@ -266,9 +253,6 @@ class BoundsNode extends Node {
         super.clear();
     }
 }
-
-BoundsNode.prototype._classConstructor = BoundsNode;
-BoundsNode.prototype._stuckChildren = null;
 
 BoundsNode.prototype._out = [];
 
