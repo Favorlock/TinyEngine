@@ -1,6 +1,5 @@
 class InputManager {
     constructor(canvas) {
-        console.log('New Input Manager')
         this.canvas = {
             keyboard: {},
             mouse: {},
@@ -13,8 +12,16 @@ class InputManager {
         }
         window.addEventListener('keydown', e => { this.win.keyboard[e.key] = 1 });
         window.addEventListener('keyup', e => { this.win.keyboard[e.key] = 0 });
+        window.addEventListener('mousemove', e => {
+            this.win.mouse.clientX = e.clientX;
+            this.win.mouse.clientY = e.clientY;
+        })
         canvas.addEventListener('keydown', e => { this.win.keyboard[e.key] = 1 });
         canvas.addEventListener('keyup', e => { this.win.keyboard[e.key] = 0});
+        canvas.addEventListener('mousemove', e => {
+            this.canvas.mouse.clientX = e.clientX;
+            this.canvas.mouse.clientY = e.clientY;
+        })
     }
 
     static get(key, element = 'canvas', device = 'keyboard') {

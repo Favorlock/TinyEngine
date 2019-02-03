@@ -1,8 +1,6 @@
 class QuadTree {
-    constructor(bounds, maxDepth, maxChildren, pointQuad = false) {
+    constructor(bounds, pointQuad, maxDepth, maxChildren) {
         let node;
-
-        console.log(bounds);
 
         if (pointQuad) {
             node = new Node(bounds, 0, maxDepth, maxChildren);
@@ -213,9 +211,9 @@ class BoundsNode extends Node {
 
             if (
                 item.x >= node._bounds.x &&
-                item.x + item.width <= node._bounds.x + node._bounds.width &&
+                item.x + item.width < node._bounds.x + node._bounds.width &&
                 item.y >= node._bounds.y &&
-                item.y + item.height <= node._bounds.y + node._bounds.height
+                item.y + item.height < node._bounds.y + node._bounds.height
             ) {
                 out.push.apply(out, this.nodes[index].retrieve(item));
             } else {

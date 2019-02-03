@@ -7,9 +7,9 @@ import Entity from './engine/ecs/Entity.js';
 import ECS from './engine/ecs/ECS.js';
 import ImageUtils from './engine/utils/ImageUtils.js';
 import MathUtils from './engine/utils/MathUtils.js';
-import InputManager from './engine/input/InputManager.js';
-
-let debug = false;
+import InputManager from './engine/io/InputManager.js';
+import QuadTree from "./engine/collections/QuadTree.js";
+import Queue from "./engine/collections/Queue.js";
 
 class TransformComponent extends Component {
     constructor(scale = 1, rotation = 0) {
@@ -146,7 +146,83 @@ class SpriteRenderSystem extends System {
             }
         }
 
+        if (debug) {
+            if (tree) {
+                let mp = {
+                    x: InputManager.getMouse('clientX') || width / 2,
+                    y: InputManager.getMouse('clientY') || height / 2,
+                    width: 5,
+                    height: 5
+                }
+                let start = performance.now();
+                let res = new Set(tree.retrieve(mp));
+                let total = performance.now() - start;
 
+                if (total > 0) {
+                    // console.log(`time: ${total}`);
+                }
+
+                let nq = new Queue();
+                let eq = new Queue();
+                nq.push(tree.root);
+
+                this.ctx.save();
+                this.ctx.resetTransform();
+
+                this.ctx.strokeStyle = 'red';
+
+                while (!nq.isEmpty()) {
+                    let node = nq.pop();
+
+                    if (node._stuckChildren.length) {
+                        eq.push(node._stuckChildren);
+                    }
+
+                    if (node.nodes.length) {
+                        nq.push(node.nodes);
+                    } else if (node.children.length) {
+                        eq.push(node.children);
+                    }
+
+                    let bounds = node._bounds;
+                    this.ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
+                }
+
+                this.ctx.strokeStyle = 'black';
+                this.ctx.fillStyle = 'green';
+
+                while (!eq.isEmpty()) {
+                    let entity = eq.pop();
+
+                    if (res.has(entity)) {
+                        ctx.fillRect(entity.x, entity.y, entity.width, entity.height);
+                    } {
+                        ctx.strokeRect(entity.x, entity.y, entity.width, entity.height);
+                    }
+
+                    // ctx.beginPath();
+                    // ctx.arc(entity.x, entity.y, 5, 0, 2 * Math.PI);
+                    // ctx.fill();
+                }
+
+                this.ctx.fillStyle = 'blue';
+                this.ctx.fillRect(mp.x, mp.y, mp.width, mp.height);
+
+                this.ctx.restore();
+            }
+
+            this.ctx.save();
+            this.ctx.resetTransform();
+            this.ctx.fillStyle = 'black';
+            this.ctx.textBaseline = 'top';
+            this.ctx.fillText('(0, 0)', 0, 0);
+
+            this.ctx.fillStyle = 'black';
+            this.ctx.textBaseline = 'bottom';
+            this.ctx.textAlign = 'end';
+            this.ctx.fillText(`(${this.ctx.canvas.width}, ${this.ctx.canvas.height})`, this.ctx.canvas.width, this.ctx.canvas.height);
+            this.ctx.restore();
+        }
     }
 }
 
@@ -226,6 +302,10 @@ class DebugSystem extends System {
     }
 }
 
+let tree;
+let last;
+let debug = true;
+let width, height;
 let canvas = document.getElementById('viewport');
 let ctx = canvas.getContext('2d');
 InputManager.init(canvas);
@@ -235,8 +315,27 @@ window.onload = function () {
     assetManager.queueDownload('skeleton.idle', './assets/SkeletonIdle.png');
     assetManager.queueDownload('skeleton.walk', './assets/SkeletonWalk.png');
     assetManager.downloadAll(function () {
-        let width = 1024, height = 768;
+        width = 1024;
+        height = 768;
         let ecs = new ECS();
+
+        tree = new QuadTree({
+            x: 0,
+            y: 0,
+            width: width,
+            height: height
+        }, false, 5, 4);
+
+        for (let i = 0; i < 100; i++) {
+            last = {
+                x: Math.round(Math.random() * width),
+                y: Math.round(Math.random() * height),
+                width: Math.round(Math.random() * 10 + 5),
+                height: Math.round(Math.random() * 10 + 5),
+            }
+            tree.insert(last)
+        }
+
 
         /*
         Takes a source image and slices it into an array of images.
@@ -270,17 +369,17 @@ window.onload = function () {
         ecs.addSystem(new BackgroundRenderSystem(ctx));
         ecs.addSystem(new SpriteRenderSystem(ctx, engine));
 
-        for (let i = 0; i < 100; i++) {
-            // Create a new entity container.
-            let skeleton = new Entity();
-            // Add components to the entity.
-            skeleton.add(new TransformComponent(Math.max(Math.random(), 0.1) * 5, Math.random() * 360));
-            skeleton.add(new PositionComponent(Math.floor(Math.random() * width), Math.floor(Math.random() * height)));
-            skeleton.add(new SpriteComponent(skeletonWalkFrames[0], 22, 33));
-            skeleton.add(new StateComponent({ isJumping: true }))
-
-            ecs.addEntity(skeleton);
-        }
+        // for (let i = 0; i < 100; i++) {
+        //     // Create a new entity container.
+        //     let skeleton = new Entity();
+        //     // Add components to the entity.
+        //     skeleton.add(new TransformComponent(Math.max(Math.random(), 0.1) * 5, Math.random() * 360));
+        //     skeleton.add(new PositionComponent(Math.floor(Math.random() * width), Math.floor(Math.random() * height)));
+        //     skeleton.add(new SpriteComponent(skeletonWalkFrames[0], 22, 33));
+        //     skeleton.add(new StateComponent({ isJumping: true }))
+        //
+        //     ecs.addEntity(skeleton);
+        // }
 
         // // Create a new entity container.
         // let skeleton = new Entity();
