@@ -33,10 +33,22 @@ class ECS {
 
     addEntity(entity) {
         this.entities.addLast(entity);
+        for (let node = this.systems.head; node; node = node.next) {
+            let system = node.data;
+            if (system.onEntityAdded) {
+                system.onEntityAdded(entity);
+            }
+        }
     }
 
     removeEntity(entity) {
         this.entities.remove(entity);
+        for (let node = this.systems.head; node; node = node.next) {
+            let system = node.data;
+            if (system.onEntityRemoved) {
+                system.onEntityRemoved(entity);
+            }
+        }
     }
 
     removeAllEntities() {

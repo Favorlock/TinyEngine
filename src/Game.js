@@ -10,6 +10,7 @@ import MathUtils from './engine/utils/MathUtils.js';
 import InputManager from './engine/io/InputManager.js';
 import QuadTree from "./engine/collections/QuadTree.js";
 import Queue from "./engine/collections/Queue.js";
+import {Collisions} from "./engine/collision/Collisions.mjs";
 
 class TransformComponent extends Component {
     constructor(scale = 1, rotation = 0) {
@@ -101,6 +102,58 @@ class AnimationFrame {
     }
 }
 
+class Collider {
+    constructor(x, y, width, height) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    }
+}
+
+class CollisionSystem extends System {
+    constructor(ctx, width, height) {
+        super();
+        this.ctx = ctx;
+        this.candidates = [];
+
+
+        for (let i = 0; i < this.count; i++) {
+            let circle = this.system.createCircle(Math.random() * this.ctx.canvas.width, Math.random() * this.ctx.canvas.height, Math.random() * 10 + 5)
+            this.bodies.push(circle);
+        }
+    }
+
+    onEntityAdded(entity) {
+        let collider = entity.get(Collider);
+        if (collider) this.candidates.push(entity);
+    }
+
+    update(entities, time, dt) {
+        let count = 0;
+        for (let i = 0; i < this.candidates.length; i++) {
+            let outer = this.candidates[i];
+            for (let j = i + 1; j < this.candidates.length; j++) {
+                let inner = this.candidates[j];
+                if (this.didCollide(outer.get(Collider), inner.get(Collider))) {
+                    count += 1;
+                }
+            }
+        }
+    }
+
+    didCollide(fColl, sCall) {
+        if (
+            sCall.x + sCall.width < fColl.x ||
+            sCall.x > fColl.x + fColl.width ||
+            sCall.y + sCall.height < fColl.y ||
+            sCall.y > fColl.y + fColl.height
+        ) return false;
+
+        return true;
+    }
+}
+
 class SpriteRenderSystem extends System {
     constructor(ctx, engine) {
         super();
@@ -147,70 +200,6 @@ class SpriteRenderSystem extends System {
         }
 
         if (debug) {
-            if (tree) {
-                let mp = {
-                    x: InputManager.getMouse('clientX') || width / 2,
-                    y: InputManager.getMouse('clientY') || height / 2,
-                    width: 5,
-                    height: 5
-                }
-                let start = performance.now();
-                let res = new Set(tree.retrieve(mp));
-                let total = performance.now() - start;
-
-                if (total > 0) {
-                    // console.log(`time: ${total}`);
-                }
-
-                let nq = new Queue();
-                let eq = new Queue();
-                nq.push(tree.root);
-
-                this.ctx.save();
-                this.ctx.resetTransform();
-
-                this.ctx.strokeStyle = 'red';
-
-                while (!nq.isEmpty()) {
-                    let node = nq.pop();
-
-                    if (node._stuckChildren.length) {
-                        eq.push(node._stuckChildren);
-                    }
-
-                    if (node.nodes.length) {
-                        nq.push(node.nodes);
-                    } else if (node.children.length) {
-                        eq.push(node.children);
-                    }
-
-                    let bounds = node._bounds;
-                    this.ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
-                }
-
-                this.ctx.strokeStyle = 'black';
-                this.ctx.fillStyle = 'green';
-
-                while (!eq.isEmpty()) {
-                    let entity = eq.pop();
-
-                    if (res.has(entity)) {
-                        ctx.fillRect(entity.x, entity.y, entity.width, entity.height);
-                    } {
-                        ctx.strokeRect(entity.x, entity.y, entity.width, entity.height);
-                    }
-
-                    // ctx.beginPath();
-                    // ctx.arc(entity.x, entity.y, 5, 0, 2 * Math.PI);
-                    // ctx.fill();
-                }
-
-                this.ctx.fillStyle = 'blue';
-                this.ctx.fillRect(mp.x, mp.y, mp.width, mp.height);
-
-                this.ctx.restore();
-            }
-
             this.ctx.save();
             this.ctx.resetTransform();
             this.ctx.fillStyle = 'black';
@@ -302,9 +291,7 @@ class DebugSystem extends System {
     }
 }
 
-let tree;
-let last;
-let debug = true;
+let debug = false;
 let width, height;
 let canvas = document.getElementById('viewport');
 let ctx = canvas.getContext('2d');
@@ -318,24 +305,6 @@ window.onload = function () {
         width = 1024;
         height = 768;
         let ecs = new ECS();
-
-        tree = new QuadTree({
-            x: 0,
-            y: 0,
-            width: width,
-            height: height
-        }, false, 5, 4);
-
-        for (let i = 0; i < 100; i++) {
-            last = {
-                x: Math.round(Math.random() * width),
-                y: Math.round(Math.random() * height),
-                width: Math.round(Math.random() * 10 + 5),
-                height: Math.round(Math.random() * 10 + 5),
-            }
-            tree.insert(last)
-        }
-
 
         /*
         Takes a source image and slices it into an array of images.
@@ -364,32 +333,26 @@ window.onload = function () {
         engine.init();
 
         // Register all systems in the order to be executed.
-        ecs.addSystem(new DebugSystem())
+        ecs.addSystem(new DebugSystem());
         ecs.addSystem(new JumpSystem());
+        ecs.addSystem(new CollisionSystem(ctx, canvas.width, canvas.height));
         ecs.addSystem(new BackgroundRenderSystem(ctx));
         ecs.addSystem(new SpriteRenderSystem(ctx, engine));
 
-        // for (let i = 0; i < 100; i++) {
-        //     // Create a new entity container.
-        //     let skeleton = new Entity();
-        //     // Add components to the entity.
-        //     skeleton.add(new TransformComponent(Math.max(Math.random(), 0.1) * 5, Math.random() * 360));
-        //     skeleton.add(new PositionComponent(Math.floor(Math.random() * width), Math.floor(Math.random() * height)));
-        //     skeleton.add(new SpriteComponent(skeletonWalkFrames[0], 22, 33));
-        //     skeleton.add(new StateComponent({ isJumping: true }))
-        //
-        //     ecs.addEntity(skeleton);
-        // }
+        for (let i = 0; i < 100; i++) {
+            // Create a new entity container.
+            let skeleton = new Entity();
+            let pos = new PositionComponent(Math.floor(Math.random() * width), Math.floor(Math.random() * height));
+            let trans = new TransformComponent(Math.max(Math.random(), 0.1) * 5, Math.random() * 360);
+            // Add components to the entity.
+            skeleton.add(trans);
+            skeleton.add(pos);
+            skeleton.add(new SpriteComponent(skeletonWalkFrames[0], 22, 33));
+            skeleton.add(new Collider(pos.x, pos.y, 22 * trans.scale, 33 * trans.scale))
+            skeleton.add(new StateComponent({isJumping: true}))
 
-        // // Create a new entity container.
-        // let skeleton = new Entity();
-        // // Add components to the entity.
-        // skeleton.add(new TransformComponent(5, 0));
-        // skeleton.add(new PositionComponent(width / 2, height / 2));
-        // skeleton.add(new SpriteComponent(skeletonWalkFrames[0], 22, 33));
-        // skeleton.add(new StateComponent({isJumping: true}));
-        //
-        // ecs.addEntity(skeleton);
+            ecs.addEntity(skeleton);
+        }
 
         engine.start();
     });

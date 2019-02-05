@@ -1,14 +1,17 @@
+import Queue from "./Queue.js";
+
 class QuadTree {
     constructor(bounds, pointQuad, maxDepth, maxChildren) {
         let node;
 
         if (pointQuad) {
-            node = new Node(bounds, 0, maxDepth, maxChildren);
+            node = new Node(bounds, this, 0, maxDepth, maxChildren);
         } else {
-            node = new BoundsNode(bounds, 0, maxDepth, maxChildren);
+            node = new BoundsNode(bounds, this, 0, maxDepth, maxChildren);
         }
 
         this.root = node;
+        this.queue = new Queue();
     }
 
     insert(item) {
@@ -22,19 +25,34 @@ class QuadTree {
         }
     }
 
+    leafs() {
+        let res = [];
+
+        this.queue.clear();
+        this.queue.push(this.root);
+        while (!this.queue.isEmpty()) {
+            let node = this.queue.pop();
+            if (node.nodes.length) this.queue.push(node.nodes);
+            else node.children.forEach(child => res.push(child));
+        }
+
+        return res;
+    }
+
     clear() {
         this.root.clear();
     }
 
     retrieve(item) {
-        let out = this.root.retrieve(item).slice(0);
+        let out = this.root.retrieve(item);
         return out;
     }
 }
 
 class Node {
-    constructor(bounds, depth = 0, maxDepth = 4, maxChildren = 4) {
+    constructor(bounds, parent, depth = 0, maxDepth = 4, maxChildren = 4) {
         this._bounds = bounds;
+        this.parent = parent;
         this.children = [];
         this.nodes = [];
         if (maxChildren) this._maxChildren = maxChildren;
@@ -64,12 +82,18 @@ class Node {
     }
 
     retrieve(item) {
+        let out = new Set();
+        this._retrieve(item, out);
+        return out;
+    }
+
+    _retrieve(item, out) {
         if (this.nodes.length) {
             let index = this._findIndex(item);
-            return this.nodes[index].retrieve(item);
+            this.nodes[index].retrieve(item, out);
+        } else {
+            this.children.forEach(val => out.add(val));
         }
-
-        return this.children;
     }
 
     _findIndex(item) {
@@ -109,28 +133,28 @@ class Node {
             y: by,
             width: b_w_h,
             height: b_h_h
-        }, depth, this._maxDepth, this._maxChildren);
+        }, this, depth, this._maxDepth, this._maxChildren);
 
         this.nodes[Node.TOP_RIGHT] = new this.constructor({
             x: bx_b_w_h,
             y: by,
             width: b_w_h,
             height: b_h_h
-        }, depth, this._maxDepth, this._maxChildren);
+        }, this, depth, this._maxDepth, this._maxChildren);
 
         this.nodes[Node.BOTTOM_LEFT] = new this.constructor({
             x: bx,
             y: by_b_h_h,
             width: b_w_h,
             height: b_h_h
-        }, depth, this._maxDepth, this._maxChildren);
+        }, this, depth, this._maxDepth, this._maxChildren);
 
         this.nodes[Node.BOTTOM_RIGHT] = new this.constructor({
             x: bx_b_w_h,
             y: by_b_h_h,
             width: b_w_h,
             height: b_h_h
-        }, depth, this._maxDepth, this._maxChildren);
+        }, this, depth, this._maxDepth, this._maxChildren);
     }
 
     clear() {
@@ -149,8 +173,8 @@ Node.BOTTOM_LEFT = 2;
 Node.BOTTOM_RIGHT = 3;
 
 class BoundsNode extends Node {
-    constructor(bounds, depth, maxChildren, maxDepth) {
-        super(bounds, depth, maxChildren, maxDepth);
+    constructor(bounds, parent, depth, maxChildren, maxDepth) {
+        super(bounds, parent, depth, maxChildren, maxDepth);
         this._stuckChildren = [];
     }
 
@@ -189,9 +213,7 @@ class BoundsNode extends Node {
         return this.children.concat(this._stuckChildren);
     }
 
-    retrieve(item) {
-        let out = this._out;
-        out.length = 0;
+    _retrieve(item, out) {
         if (this.nodes.length) {
             let index = this._findIndex(item);
             let node = this.nodes[index];
@@ -202,47 +224,50 @@ class BoundsNode extends Node {
                 item.y >= node._bounds.y &&
                 item.y + item.height < node._bounds.y + node._bounds.height
             ) {
-                out.push.apply(out, this.nodes[index].retrieve(item));
+                this.nodes[index]._retrieve(item, out);
             } else {
                 if (item.x <= this.nodes[Node.TOP_RIGHT]._bounds.x) {
                     if (item.y <= this.nodes[Node.BOTTOM_LEFT]._bounds.y) {
-                        out.push.apply(out, this.nodes[Node.TOP_LEFT].getAllContent());
+                        this.nodes[BoundsNode.TOP_LEFT]._getAllContent(out);
                     }
 
                     if (item.y + item.height > this.nodes[Node.BOTTOM_LEFT]._bounds.y) {
-                        out.push.apply(out, this.nodes[Node.BOTTOM_LEFT].getAllContent());
+                        this.nodes[BoundsNode.BOTTOM_LEFT]._getAllContent(out)
                     }
                 }
 
                 if (item.x + item.width > this.nodes[Node.TOP_RIGHT]._bounds.x) {
                     if (item.y <= this.nodes[Node.BOTTOM_RIGHT]._bounds.y) {
-                        out.push.apply(out, this.nodes[Node.TOP_RIGHT].getAllContent());
+                        this.nodes[Node.TOP_RIGHT]._getAllContent(out);
                     }
 
                     if (item.y + item.height > this.nodes[Node.BOTTOM_RIGHT]._bounds.y) {
-                        out.push.apply(out, this.nodes[Node.BOTTOM_RIGHT].getAllContent());
+                        this.nodes[Node.BOTTOM_RIGHT]._getAllContent(out);
                     }
                 }
             }
+        } else {
+            this.children.forEach(val => out.add(val));
         }
 
-        out.push.apply(out, this._stuckChildren);
-        out.push.apply(out, this.children);
-
-        return out;
+        this._stuckChildren.forEach(val => out.add(val));
     }
 
     getAllContent() {
-        let out = this._out;
+        let out = new Set();
+        this._getAllContent(out);
+        return out;
+    }
 
+    _getAllContent(out) {
         if (this.nodes.length) {
             for (let i = 0; i < this.nodes.length; i++) {
-                this.nodes[i].getAllContent();
+                this.nodes[i]._getAllContent(out);
             }
         }
 
-        out.push.apply(out, this._stuckChildren);
-        out.push.apply(out, this.children);
+        this._stuckChildren.forEach(val => out.add(val));
+        this.children.forEach(val => out.add(val));
     }
 
     clear() {
@@ -253,7 +278,5 @@ class BoundsNode extends Node {
         super.clear();
     }
 }
-
-BoundsNode.prototype._out = [];
 
 export default QuadTree;
