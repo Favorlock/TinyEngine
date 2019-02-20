@@ -10,46 +10,45 @@ import MathUtils from './engine/utils/MathUtils.js';
 import InputManager from './engine/io/InputManager.js';
 import QuadTree from "./engine/collections/QuadTree.js";
 import Queue from "./engine/collections/Queue.js";
-import {Collisions} from "./engine/collision/Collisions.mjs";
 
 class TransformComponent extends Component {
-    constructor(scale = 1, rotation = 0) {
+    /**
+     * @constructor
+     * @param pos_x (Number) [pos_x = 0] The starting position along the x axis;
+     * @param pos_y (Number) [pos_y = 0] The starting position along the y axis;
+     * @param scale_x (Number) [scale_x = 1] The starting scale along the x aaxis
+     * @param scale_y (Number) [scale_y = 1] The starting scale along the y axis
+     * @param angle (Number) [angle = 0] The starting rotation in radians
+     */
+    constructor(pos_x = 0, pos_y = 0, scale_x = 1, scale_y = 1, angle = 0) {
         super();
-        this.scale = scale;
-        this.rotation = MathUtils.degreesToRadians(rotation);
-        this.snapshot = {
-            scale: scale,
-            rotation: MathUtils.degreesToRadians(rotation)
-        };
-
+        this.pos_x = pos_x;
+        this.pos_y = pos_y;
+        this.scale_x = scale_x;
+        this.scale_y = scale_y;
+        this.angle = MathUtils.degreesToRadians(angle);
     }
 
-    setRadianRotation(rotation) {
-        this.rotation = rotation;
+    setRadianRotation(angle) {
+        this.angle = angle;
     }
 
-    setDegreeRotation(rotation) {
-        this.rotation = MathUtils.degreesToRadians(rotation);
+    setDegreeRotation(angle) {
+        this.angle = MathUtils.degreesToRadians(angle);
     }
 
     save() {
         this.snapshot = {
-            scale: this.scale,
-            rotation: this.rotation
+            pos_x: this.pos_x,
+            pos_y: this.pos_y,
+            scale_x: this.scale_x,
+            scale_y: this.scale_y,
+            angle: this.angle
         };
     }
 
     restore() {
         Object.assign(this, this.snapshot);
-    }
-}
-
-class PositionComponent extends Component {
-    constructor(x, y, zIndex = 0) {
-        super();
-        this.x = x;
-        this.y = y;
-        this.zIndex = zIndex;
     }
 }
 
@@ -165,10 +164,9 @@ class SpriteRenderSystem extends System {
         for (let node = entities; node; node = node.next) {
             let entity = node.data;
             let tran = entity.get(TransformComponent);
-            let pos = entity.get(PositionComponent);
             let sprite = entity.get(SpriteComponent);
 
-            if (tran && pos && sprite) {
+            if (tran && sprite) {
                 let xOffset = -sprite.width / 2;
                 let yOffset = -sprite.height / 2;
 
@@ -176,10 +174,10 @@ class SpriteRenderSystem extends System {
                 this.ctx.save();
                 // Set new transformation
                 this.ctx.resetTransform();
-                this.ctx.translate(pos.x, pos.y);
+                this.ctx.translate(tran.pos_x, tran.pos_y);
                 this.ctx.translate(xOffset / 2, yOffset / 2);
-                if (tran.rotation != 0) this.ctx.rotate(tran.rotation);
-                if (tran.scale != 1) this.ctx.scale(tran.scale, tran.scale);
+                if (tran.angle != 0) this.ctx.rotate(tran.angle);
+                if (tran.scale_x != 1 || tran.scale_y != 1) this.ctx.scale(tran.scale_x, tran.scale_y);
 
                 // Draw sprite
                 this.ctx.drawImage(sprite.img, sprite.offsetX, sprite.offsetY, sprite.width, sprite.height,
@@ -258,10 +256,12 @@ class JumpSystem extends System {
                     state.jumpStep = Math.max(Math.random(), this.stepMinBound) * this.stepMultiple * this.stepMax;
                 }
 
-                tran.setRadianRotation(tran.rotation + state.jumpStep);
+                tran.setRadianRotation(tran.angle + state.jumpStep);
                 state.jumpTime += state.jumpStep;
 
-                tran.scale += (Math.sin(state.jumpTime) * this.scaleSeed) / (2 * Math.PI);
+                let scale = (Math.sin(state.jumpTime) * this.scaleSeed) / (2 * Math.PI);
+                tran.scale_x += scale;
+                tran.scale_y += scale;
                 if (state.jumpTime >= 2 * Math.PI) {
                     state.isJumping = false;
 
@@ -342,13 +342,17 @@ window.onload = function () {
         for (let i = 0; i < 100; i++) {
             // Create a new entity container.
             let skeleton = new Entity();
-            let pos = new PositionComponent(Math.floor(Math.random() * width), Math.floor(Math.random() * height));
-            let trans = new TransformComponent(Math.max(Math.random(), 0.1) * 5, Math.random() * 360);
+            let scale = Math.max(Math.random(), 0.1) * 5;
+            let trans = new TransformComponent(
+                Math.floor(Math.random() * width),
+                Math.floor(Math.random() * height),
+                scale,
+                scale,
+                Math.random() * 360);
             // Add components to the entity.
             skeleton.add(trans);
-            skeleton.add(pos);
             skeleton.add(new SpriteComponent(skeletonWalkFrames[0], 22, 33));
-            skeleton.add(new Collider(pos.x, pos.y, 22 * trans.scale, 33 * trans.scale))
+            skeleton.add(new Collider(trans.pos_x, trans.pos_y, 22 * trans.scale_x, 33 * trans.scale_y))
             skeleton.add(new StateComponent({isJumping: true}))
 
             ecs.addEntity(skeleton);
