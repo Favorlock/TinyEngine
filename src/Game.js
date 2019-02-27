@@ -314,6 +314,31 @@ class JumpSystem extends System {
     }
 }
 
+class SkeletonAISystem extends System {
+    constructor() {
+        super();
+        this._skeleton = null;
+    }
+
+    set skeleton(skeleton) {
+        this._skeleton = skeleton;
+    }
+
+    update(entities, time, dt) {
+        if (this._skeleton) {
+            let tran = this._skeleton.get(TransformComponent);
+            let anim = this._skeleton.get(AnimatorComponent);
+            if (tran) {
+                if (tran.pos_x > ctx.canvas.width) {
+                    tran.pos_x = -anim.animation.frames.width * tran.scale_x
+                } else {
+                    tran.pos_x += 1;
+                }
+            }
+        }
+    }
+}
+
 class DebugSystem extends System {
     constructor() {
         super();
@@ -387,6 +412,9 @@ window.onload = function () {
         ecs.addSystem(new SpriteRenderSystem(ctx, engine));
         ecs.addSystem(new AnimationSystem());
 
+        let skeletonAISystem = new SkeletonAISystem();
+        ecs.addSystem(skeletonAISystem);
+
         let skeleton;
         let trans;
 
@@ -409,12 +437,12 @@ window.onload = function () {
         //     ecs.addEntity(skeleton);
         // }
 
-        let interval = ctx.canvas.width / 7;
+        let interval = ctx.canvas.width / 6;
         let xOffset = -interval / 3;
 
         skeleton = new Entity();
         trans = new TransformComponent((xOffset += interval),
-            ctx.canvas.height / 2,
+            ctx.canvas.height / 4,
             3, 3, 0);
         skeleton.add(trans);
         skeleton.add(new AnimatorComponent(new Animation(skeletonIdleFrames, 100 / 1000, true)));
@@ -423,16 +451,7 @@ window.onload = function () {
 
         skeleton = new Entity();
         trans = new TransformComponent((xOffset += interval),
-            ctx.canvas.height / 2,
-            3, 3, 0);
-        skeleton.add(trans);
-        skeleton.add(new AnimatorComponent(new Animation(skeletonWalkFrames, 100 / 1000, true)));
-
-        ecs.addEntity(skeleton);
-
-        skeleton = new Entity();
-        trans = new TransformComponent((xOffset += interval),
-            ctx.canvas.height / 2,
+            ctx.canvas.height / 4,
             3, 3, 0);
         skeleton.add(trans);
         skeleton.add(new AnimatorComponent(new Animation(skeletonReactFrames, 100 / 1000, true)));
@@ -441,7 +460,7 @@ window.onload = function () {
 
         skeleton = new Entity();
         trans = new TransformComponent((xOffset += interval),
-            ctx.canvas.height / 2,
+            ctx.canvas.height / 4,
             3, 3, 0);
         skeleton.add(trans);
         skeleton.add(new AnimatorComponent(new Animation(skeletonAttackFrames, 100 / 1000, true)));
@@ -450,7 +469,7 @@ window.onload = function () {
 
         skeleton = new Entity();
         trans = new TransformComponent((xOffset += interval),
-            ctx.canvas.height / 2,
+            ctx.canvas.height / 4,
             3, 3, 0);
         skeleton.add(trans);
         skeleton.add(new AnimatorComponent(new Animation(skeletonHitFrames, 100 / 1000, true)));
@@ -459,12 +478,22 @@ window.onload = function () {
 
         skeleton = new Entity();
         trans = new TransformComponent((xOffset += interval),
-            ctx.canvas.height / 2,
+            ctx.canvas.height / 4,
             3, 3, 0);
         skeleton.add(trans);
         skeleton.add(new AnimatorComponent(new Animation(skeletonDeathFrames, 100 / 1000, true)));
 
         ecs.addEntity(skeleton);
+
+        skeleton = new Entity();
+        trans = new TransformComponent(0,
+            ctx.canvas.height / 4 * 3,
+            3, 3, 0);
+        skeleton.add(trans);
+        skeleton.add(new AnimatorComponent(new Animation(skeletonWalkFrames, 100 / 1000, true)));
+
+        ecs.addEntity(skeleton);
+        skeletonAISystem.skeleton = skeleton;
 
         engine.start();
     });
