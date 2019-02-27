@@ -207,16 +207,15 @@ class SpriteRenderSystem extends System {
                 }
 
                 let width = frame.width;
-                let height= frame.height;
-                let xOffset = -width / 2;
-                let yOffset = -height / 2;
+                let height = frame.height;
+                let xOffset = 0;
+                let yOffset = -height;
 
                 // Save previous transformation
                 this.ctx.save();
                 // Set new transformation
                 this.ctx.resetTransform();
                 this.ctx.translate(tran.pos_x, tran.pos_y);
-                this.ctx.translate(xOffset / 2, yOffset / 2);
                 if (tran.angle != 0) this.ctx.rotate(tran.angle);
                 if (tran.scale_x != 1 || tran.scale_y != 1) this.ctx.scale(tran.scale_x, tran.scale_y);
 
@@ -230,7 +229,7 @@ class SpriteRenderSystem extends System {
                     this.ctx.strokeRect(xOffset, yOffset, width, height);
 
                     this.ctx.fillStyle = 'green';
-                    this.ctx.fillRect(0, 0, 1, 1);
+                    this.ctx.fillRect(width / 2, -height / 2, 1, 1);
                 }
 
                 // Restore saved transform
@@ -239,17 +238,15 @@ class SpriteRenderSystem extends System {
         }
 
         if (debug) {
-            this.ctx.save();
-            this.ctx.resetTransform();
-            this.ctx.fillStyle = 'black';
-            this.ctx.textBaseline = 'top';
-            this.ctx.fillText('(0, 0)', 0, 0);
-
-            this.ctx.fillStyle = 'black';
-            this.ctx.textBaseline = 'bottom';
-            this.ctx.textAlign = 'end';
-            this.ctx.fillText(`(${this.ctx.canvas.width}, ${this.ctx.canvas.height})`, this.ctx.canvas.width, this.ctx.canvas.height);
-            this.ctx.restore();
+            ctx.save();
+            ctx.resetTransform();
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, ctx.canvas.height / 2);
+            ctx.lineTo(ctx.canvas.width, ctx.canvas.height / 2);
+            ctx.stroke();
+            ctx.restore();
         }
     }
 }
@@ -268,11 +265,12 @@ class BackgroundRenderSystem extends System {
         this.ctx.resetTransform();
         this.ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        this.ctx.fillStyle = `hsl(${this.hue}, ${this.saturation}%, ${this.lightness}%)`;
+        // this.ctx.fillStyle = `hsl(${this.hue}, ${this.saturation}%, ${this.lightness}%)`;
+        this.ctx.fillStyle = 'black'
         this.ctx.fillRect(0, 0, canvas.width, canvas.height);
         this.ctx.restore();
 
-        this.hue = (this.hue + dt * (1 / dt)) % 360;
+        // this.hue = (this.hue + dt * (1 / dt)) % 360;
     }
 }
 
@@ -342,6 +340,8 @@ window.onload = function () {
     let assetManager = new AssetManager();
     assetManager.queueDownload('skeleton.idle', './assets/SkeletonIdle.png');
     assetManager.queueDownload('skeleton.walk', './assets/SkeletonWalk.png');
+    assetManager.queueDownload('skeleton.attack', './assets/SkeletonAttack.png');
+    assetManager.queueDownload('skeleton.death', './assets/SkeletonDeath.png');
     assetManager.downloadAll(function () {
         width = 1024;
         height = 768;
@@ -356,6 +356,8 @@ window.onload = function () {
          */
         let skeletonIdleFrames = ImageUtils.sliceImage(assetManager.cache['skeleton.idle'], 24, 32);
         let skeletonWalkFrames = ImageUtils.sliceImage(assetManager.cache['skeleton.walk'], 22, 33);
+        let skeletonAttackFrames = ImageUtils.sliceImage(assetManager.cache['skeleton.attack'], 43, 37);
+        let skeletonDeathFrames = ImageUtils.sliceImage(assetManager.cache['skeleton.death'], 33, 32);
 
         let config = {
             canvas: canvas,
@@ -403,36 +405,42 @@ window.onload = function () {
         //     ecs.addEntity(skeleton);
         // }
 
-        skeleton = new Entity();
-        trans = new TransformComponent(ctx.canvas.width / 2 - 100,
-            ctx.canvas.height / 2 - 200,
-            3, 3, 0);
-        skeleton.add(trans);
-        skeleton.add(new SpriteComponent(skeletonIdleFrames[0]));
-        skeleton.add(new Collider(trans.pos_x, trans.pos_y,
-            trans.scale_x * skeletonIdleFrames.width, trans.scale_y * skeletonIdleFrames.height));
-
-        ecs.addEntity(skeleton);
+        let interval = ctx.canvas.width / 5;
+        let xOffset = 0;
 
         skeleton = new Entity();
-        trans = new TransformComponent(ctx.canvas.width / 2,
-            ctx.canvas.height / 2 - 200,
-            3, 3, 0);
-        skeleton.add(trans);
-        skeleton.add(new AnimatorComponent(new Animation(skeletonIdleFrames, 100 / 1000, false)));
-        skeleton.add(new Collider(trans.pos_x, trans.pos_y,
-            trans.scale_x * skeletonIdleFrames.width, trans.scale_y * skeletonIdleFrames.height));
-
-        ecs.addEntity(skeleton);
-
-        skeleton = new Entity();
-        trans = new TransformComponent(ctx.canvas.width / 2 + 100,
-            ctx.canvas.height / 2 - 200,
+        trans = new TransformComponent((xOffset += interval),
+            ctx.canvas.height / 2,
             3, 3, 0);
         skeleton.add(trans);
         skeleton.add(new AnimatorComponent(new Animation(skeletonIdleFrames, 100 / 1000, true)));
-        skeleton.add(new Collider(trans.pos_x, trans.pos_y,
-            trans.scale_x * skeletonIdleFrames.width, trans.scale_y * skeletonIdleFrames.height));
+
+        ecs.addEntity(skeleton);
+
+        skeleton = new Entity();
+        trans = new TransformComponent((xOffset += interval),
+            ctx.canvas.height / 2,
+            3, 3, 0);
+        skeleton.add(trans);
+        skeleton.add(new AnimatorComponent(new Animation(skeletonWalkFrames, 100 / 1000, true)));
+
+        ecs.addEntity(skeleton);
+
+        skeleton = new Entity();
+        trans = new TransformComponent((xOffset += interval),
+            ctx.canvas.height / 2,
+            3, 3, 0);
+        skeleton.add(trans);
+        skeleton.add(new AnimatorComponent(new Animation(skeletonAttackFrames, 100 / 1000, true)));
+
+        ecs.addEntity(skeleton);
+
+        skeleton = new Entity();
+        trans = new TransformComponent((xOffset += interval),
+            ctx.canvas.height / 2,
+            3, 3, 0);
+        skeleton.add(trans);
+        skeleton.add(new AnimatorComponent(new Animation(skeletonDeathFrames, 100 / 1000, true)));
 
         ecs.addEntity(skeleton);
 
