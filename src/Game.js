@@ -381,6 +381,9 @@ window.onload = function () {
         ecs.addSystem(new SpriteRenderSystem(ctx, engine));
         ecs.addSystem(new AnimationSystem());
 
+        let skeleton;
+        let trans;
+
         // for (let i = 0; i < 100; i++) {
         //     // Create a new entity container.
         //     let skeleton = new Entity();
@@ -400,20 +403,20 @@ window.onload = function () {
         //     ecs.addEntity(skeleton);
         // }
 
-        let skeleton = new Entity();
-        let trans = new TransformComponent(ctx.canvas.width / 2,
-            ctx.canvas.height / 2,
+        skeleton = new Entity();
+        trans = new TransformComponent(ctx.canvas.width / 2 - 100,
+            ctx.canvas.height / 2 - 200,
             3, 3, 0);
         skeleton.add(trans);
-        skeleton.add(new AnimatorComponent(new Animation(skeletonIdleFrames, 100 / 1000, true)));
+        skeleton.add(new SpriteComponent(skeletonIdleFrames[0]));
         skeleton.add(new Collider(trans.pos_x, trans.pos_y,
             trans.scale_x * skeletonIdleFrames.width, trans.scale_y * skeletonIdleFrames.height));
 
         ecs.addEntity(skeleton);
 
         skeleton = new Entity();
-        trans = new TransformComponent(ctx.canvas.width / 2 - 100,
-            ctx.canvas.height / 2,
+        trans = new TransformComponent(ctx.canvas.width / 2,
+            ctx.canvas.height / 2 - 200,
             3, 3, 0);
         skeleton.add(trans);
         skeleton.add(new AnimatorComponent(new Animation(skeletonIdleFrames, 100 / 1000, false)));
@@ -424,10 +427,10 @@ window.onload = function () {
 
         skeleton = new Entity();
         trans = new TransformComponent(ctx.canvas.width / 2 + 100,
-            ctx.canvas.height / 2,
+            ctx.canvas.height / 2 - 200,
             3, 3, 0);
         skeleton.add(trans);
-        skeleton.add(new SpriteComponent(skeletonIdleFrames[0]));
+        skeleton.add(new AnimatorComponent(new Animation(skeletonIdleFrames, 100 / 1000, true)));
         skeleton.add(new Collider(trans.pos_x, trans.pos_y,
             trans.scale_x * skeletonIdleFrames.width, trans.scale_y * skeletonIdleFrames.height));
 
