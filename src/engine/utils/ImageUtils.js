@@ -8,6 +8,9 @@ function sliceImage(src,
                     yOffset = 0,
                     frameCount = Number.MAX_SAFE_INTEGER) {
     let images = [];
+    images.width = frameWidth;
+    images.height = frameHeight;
+
     let nTilesY = Math.floor(src.height / frameHeight);
     let nTilesX = Math.floor(src.width / frameWidth);
 
@@ -16,9 +19,9 @@ function sliceImage(src,
     canvas.width = frameWidth;
     canvas.height = frameHeight;
 
-    for (let ty = 0; ty < nTilesY && images < frameCount; ty++) {
+    for (let ty = 0; ty < nTilesY && images.length < frameCount; ty++) {
         if (ty < nOffsetY) continue;
-        for (let tx = 0; tx < nTilesX && images < frameCount; tx++) {
+        for (let tx = 0; tx < nTilesX && images.length < frameCount; tx++) {
             if (ty == nOffsetY && tx < nOffsetX) continue;
             let x = tx * frameWidth + (ty == nOffsetX ? xOffset : 0);
             let y = ty * frameHeight + yOffset;
@@ -28,6 +31,8 @@ function sliceImage(src,
 
             let img = new Image();
             img.src = canvas.toDataURL('image/png');
+            img.width = frameWidth;
+            img.height = frameHeight;
 
             images.push(img);
         }

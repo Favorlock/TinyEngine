@@ -8,8 +8,6 @@ import ECS from './engine/ecs/ECS.js';
 import ImageUtils from './engine/utils/ImageUtils.js';
 import MathUtils from './engine/utils/MathUtils.js';
 import InputManager from './engine/io/InputManager.js';
-import QuadTree from "./engine/collections/QuadTree.js";
-import Queue from "./engine/collections/Queue.js";
 
 class TransformComponent extends Component {
     /**
@@ -53,7 +51,7 @@ class TransformComponent extends Component {
 }
 
 class SpriteComponent extends Component {
-    constructor(img, width, height, offsetX = 0, offsetY = 0) {
+    constructor(img, width = img.width, height = img.height, offsetX = 0, offsetY = 0) {
         super();
         this.img = img;
         this.width = width;
@@ -63,41 +61,59 @@ class SpriteComponent extends Component {
     }
 }
 
-class StateComponent extends Component {
-    constructor(src) {
-        super();
-        Object.assign(this, src);
-    }
-}
-
 class AnimatorComponent extends Component {
-    constructor(animations) {
+    constructor(animation) {
         super();
-        this.state = {};
-        this.animations = animations;
+        this.animation = animation;
     }
-}
 
-class SpriteSheet {
-    constructor(img) {
-        this.img = img;
+    setAnimation(src) {
+        this.animation = src;
+        this.animation.reset();
     }
 }
 
 class Animation {
-    constructor(src, ticksPerFrame, frames) {
-        this.src = src;
-        this.ticksPerFrame = ticksPerFrame;
+    constructor(frames, tpf, loop) {
         this.frames = frames;
+        this.tpf = tpf;
+        this.loop = loop;
+        this.frameIndex = 0;
+        this.ticks = 0;
+        this.complete = false;
+    }
+
+    tick(ticks) {
+        this.ticks += ticks;
+
+        while (this.ticks >= this.tpf) {
+            if (this.frameIndex === this.frames.length - 1)
+                if (this.loop) {
+                    this.frameIndex = 0;
+                } else {
+                    this.complete = true;
+                }
+            else
+                this.frameIndex += 1;
+
+            this.ticks = this.ticks - this.tpf;
+        }
+    }
+
+    reset() {
+        this.frameIndex = 0;
+        this.complete = false;
+    }
+
+    getActiveFrame() {
+        return this.frames[this.frameIndex];
     }
 }
 
-class AnimationFrame {
-    constructor(xOffset, yOffset, width, height) {
-        this.xOffset = xOffset;
-        this.yOffset = yOffset;
-        this.width = width;
-        this.height = height;
+class StateComponent extends Component {
+    constructor(src) {
+        super();
+        Object.assign(this, src);
     }
 }
 
@@ -111,16 +127,9 @@ class Collider {
 }
 
 class CollisionSystem extends System {
-    constructor(ctx, width, height) {
+    constructor(ctx) {
         super();
-        this.ctx = ctx;
         this.candidates = [];
-
-
-        for (let i = 0; i < this.count; i++) {
-            let circle = this.system.createCircle(Math.random() * this.ctx.canvas.width, Math.random() * this.ctx.canvas.height, Math.random() * 10 + 5)
-            this.bodies.push(circle);
-        }
     }
 
     onEntityAdded(entity) {
@@ -153,6 +162,24 @@ class CollisionSystem extends System {
     }
 }
 
+class AnimationSystem extends System {
+    constructor() {
+        super();
+    }
+
+    update(entities, time, dt) {
+        for (let node = entities; node; node = node.next) {
+            let entity = node.data;
+            let animator = entity.get(AnimatorComponent);
+
+            if (animator) {
+                let anim = animator.animation;
+                if (anim) anim.tick(dt);
+            }
+        }
+    }
+}
+
 class SpriteRenderSystem extends System {
     constructor(ctx, engine) {
         super();
@@ -165,10 +192,24 @@ class SpriteRenderSystem extends System {
             let entity = node.data;
             let tran = entity.get(TransformComponent);
             let sprite = entity.get(SpriteComponent);
+            let animator = entity.get(AnimatorComponent);
 
-            if (tran && sprite) {
-                let xOffset = -sprite.width / 2;
-                let yOffset = -sprite.height / 2;
+            if (tran && (sprite || animator)) {
+                let frame;
+
+                if (animator && animator.animation) {
+                    let anim = animator.animation;
+                    frame = anim.getActiveFrame();
+                } else if (sprite.img) {
+                    frame = sprite.img;
+                } else {
+                    continue;
+                }
+
+                let width = frame.width;
+                let height= frame.height;
+                let xOffset = -width / 2;
+                let yOffset = -height / 2;
 
                 // Save previous transformation
                 this.ctx.save();
@@ -180,13 +221,13 @@ class SpriteRenderSystem extends System {
                 if (tran.scale_x != 1 || tran.scale_y != 1) this.ctx.scale(tran.scale_x, tran.scale_y);
 
                 // Draw sprite
-                this.ctx.drawImage(sprite.img, sprite.offsetX, sprite.offsetY, sprite.width, sprite.height,
-                    xOffset, yOffset, sprite.width, sprite.height);
+                this.ctx.drawImage(frame, 0, 0, width, height,
+                    xOffset, yOffset, width, height);
 
                 if (debug) {
                     this.ctx.strokeStyle = 'navy';
                     this.ctx.lineWidth = 0.25;
-                    this.ctx.strokeRect(xOffset, yOffset, sprite.width, sprite.height);
+                    this.ctx.strokeRect(xOffset, yOffset, width, height);
 
                     this.ctx.fillStyle = 'green';
                     this.ctx.fillRect(0, 0, 1, 1);
@@ -241,7 +282,7 @@ class JumpSystem extends System {
         this.scaleSeed = 0.25;
         this.stepMax = Math.PI / 60;
         this.stepMultiple = 2.5;
-        this.stepMinBound = 0.8
+        this.stepMinBound = 0.8;
     }
 
     update(entities, time, dt) {
@@ -334,29 +375,63 @@ window.onload = function () {
 
         // Register all systems in the order to be executed.
         ecs.addSystem(new DebugSystem());
-        ecs.addSystem(new JumpSystem());
+        // ecs.addSystem(new JumpSystem());
         ecs.addSystem(new CollisionSystem(ctx, canvas.width, canvas.height));
         ecs.addSystem(new BackgroundRenderSystem(ctx));
         ecs.addSystem(new SpriteRenderSystem(ctx, engine));
+        ecs.addSystem(new AnimationSystem());
 
-        for (let i = 0; i < 100; i++) {
-            // Create a new entity container.
-            let skeleton = new Entity();
-            let scale = Math.max(Math.random(), 0.1) * 5;
-            let trans = new TransformComponent(
-                Math.floor(Math.random() * width),
-                Math.floor(Math.random() * height),
-                scale,
-                scale,
-                Math.random() * 360);
-            // Add components to the entity.
-            skeleton.add(trans);
-            skeleton.add(new SpriteComponent(skeletonWalkFrames[0], 22, 33));
-            skeleton.add(new Collider(trans.pos_x, trans.pos_y, 22 * trans.scale_x, 33 * trans.scale_y))
-            skeleton.add(new StateComponent({isJumping: true}))
+        // for (let i = 0; i < 100; i++) {
+        //     // Create a new entity container.
+        //     let skeleton = new Entity();
+        //     let scale = Math.max(Math.random(), 0.1) * 5;
+        //     let trans = new TransformComponent(
+        //         Math.floor(Math.random() * width),
+        //         Math.floor(Math.random() * height),
+        //         scale,
+        //         scale,
+        //         Math.random() * 360);
+        //     // Add components to the entity.
+        //     skeleton.add(trans);
+        //     skeleton.add(new SpriteComponent(skeletonWalkFrames[0], 22, 33));
+        //     skeleton.add(new Collider(trans.pos_x, trans.pos_y, 22 * trans.scale_x, 33 * trans.scale_y))
+        //     skeleton.add(new StateComponent({isJumping: true}))
+        //
+        //     ecs.addEntity(skeleton);
+        // }
 
-            ecs.addEntity(skeleton);
-        }
+        let skeleton = new Entity();
+        let trans = new TransformComponent(ctx.canvas.width / 2,
+            ctx.canvas.height / 2,
+            3, 3, 0);
+        skeleton.add(trans);
+        skeleton.add(new AnimatorComponent(new Animation(skeletonIdleFrames, 100 / 1000, true)));
+        skeleton.add(new Collider(trans.pos_x, trans.pos_y,
+            trans.scale_x * skeletonIdleFrames.width, trans.scale_y * skeletonIdleFrames.height));
+
+        ecs.addEntity(skeleton);
+
+        skeleton = new Entity();
+        trans = new TransformComponent(ctx.canvas.width / 2 - 100,
+            ctx.canvas.height / 2,
+            3, 3, 0);
+        skeleton.add(trans);
+        skeleton.add(new AnimatorComponent(new Animation(skeletonIdleFrames, 100 / 1000, false)));
+        skeleton.add(new Collider(trans.pos_x, trans.pos_y,
+            trans.scale_x * skeletonIdleFrames.width, trans.scale_y * skeletonIdleFrames.height));
+
+        ecs.addEntity(skeleton);
+
+        skeleton = new Entity();
+        trans = new TransformComponent(ctx.canvas.width / 2 + 100,
+            ctx.canvas.height / 2,
+            3, 3, 0);
+        skeleton.add(trans);
+        skeleton.add(new SpriteComponent(skeletonIdleFrames[0]));
+        skeleton.add(new Collider(trans.pos_x, trans.pos_y,
+            trans.scale_x * skeletonIdleFrames.width, trans.scale_y * skeletonIdleFrames.height));
+
+        ecs.addEntity(skeleton);
 
         engine.start();
     });
