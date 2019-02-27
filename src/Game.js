@@ -340,7 +340,9 @@ window.onload = function () {
     let assetManager = new AssetManager();
     assetManager.queueDownload('skeleton.idle', './assets/SkeletonIdle.png');
     assetManager.queueDownload('skeleton.walk', './assets/SkeletonWalk.png');
+    assetManager.queueDownload('skeleton.react', './assets/SkeletonReact.png');
     assetManager.queueDownload('skeleton.attack', './assets/SkeletonAttack.png');
+    assetManager.queueDownload('skeleton.hit', './assets/SkeletonHit.png');
     assetManager.queueDownload('skeleton.death', './assets/SkeletonDeath.png');
     assetManager.downloadAll(function () {
         width = 1024;
@@ -356,7 +358,9 @@ window.onload = function () {
          */
         let skeletonIdleFrames = ImageUtils.sliceImage(assetManager.cache['skeleton.idle'], 24, 32);
         let skeletonWalkFrames = ImageUtils.sliceImage(assetManager.cache['skeleton.walk'], 22, 33);
+        let skeletonReactFrames = ImageUtils.sliceImage(assetManager.cache['skeleton.react'], 22, 32);
         let skeletonAttackFrames = ImageUtils.sliceImage(assetManager.cache['skeleton.attack'], 43, 37);
+        let skeletonHitFrames = ImageUtils.sliceImage(assetManager.cache['skeleton.hit'], 30, 32);
         let skeletonDeathFrames = ImageUtils.sliceImage(assetManager.cache['skeleton.death'], 33, 32);
 
         let config = {
@@ -405,8 +409,8 @@ window.onload = function () {
         //     ecs.addEntity(skeleton);
         // }
 
-        let interval = ctx.canvas.width / 5;
-        let xOffset = 0;
+        let interval = ctx.canvas.width / 7;
+        let xOffset = -interval / 3;
 
         skeleton = new Entity();
         trans = new TransformComponent((xOffset += interval),
@@ -431,7 +435,25 @@ window.onload = function () {
             ctx.canvas.height / 2,
             3, 3, 0);
         skeleton.add(trans);
+        skeleton.add(new AnimatorComponent(new Animation(skeletonReactFrames, 100 / 1000, true)));
+
+        ecs.addEntity(skeleton);
+
+        skeleton = new Entity();
+        trans = new TransformComponent((xOffset += interval),
+            ctx.canvas.height / 2,
+            3, 3, 0);
+        skeleton.add(trans);
         skeleton.add(new AnimatorComponent(new Animation(skeletonAttackFrames, 100 / 1000, true)));
+
+        ecs.addEntity(skeleton);
+
+        skeleton = new Entity();
+        trans = new TransformComponent((xOffset += interval),
+            ctx.canvas.height / 2,
+            3, 3, 0);
+        skeleton.add(trans);
+        skeleton.add(new AnimatorComponent(new Animation(skeletonHitFrames, 100 / 1000, true)));
 
         ecs.addEntity(skeleton);
 
