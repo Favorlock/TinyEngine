@@ -6,6 +6,7 @@ class Engine {
         this.config = config;
         this.isInitialized = false;
         this.fps = 0;
+        this.debug = false;
     }
 
     init() {
