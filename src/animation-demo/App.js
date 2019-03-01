@@ -79,13 +79,9 @@ API.InputManager.init(canvas);
 
 window.onload = function () {
     let assetManager = new API.AssetManager();
-    assetManager.queueDownload('entity.idle', '../../assets/SkeletonIdle.png');
-    assetManager.queueDownload('entity.walk', '../../assets/SkeletonWalk.png');
-    assetManager.queueDownload('entity.react', '../../assets/SkeletonReact.png');
-    assetManager.queueDownload('entity.attack', '../../assets/SkeletonAttack.png');
-    assetManager.queueDownload('entity.hit', '../../assets/SkeletonHit.png');
-    assetManager.queueDownload('entity.death', '../../assets/SkeletonDeath.png');
-    assetManager.queueDownload('raptor.run', '../../assets/raptor/run.png');
+    assetManager.queueDownload('raptor.run', '../../assets/raptor/Run.png');
+    assetManager.queueDownload('raptor.death', '../../assets/raptor/Death.png');
+    assetManager.queueDownload('raptor.deploy_para', '../../assets/raptor/DeployParachute.png');
     assetManager.downloadAll(function () {
         width = 1024;
         height = 768;
@@ -98,13 +94,9 @@ window.onload = function () {
         adjacent frames may bleed into the frame you are rendering when drawing
         from a single image using an offset.
          */
-        let skeletonIdleFrames = ImageUtils.sliceImage(assetManager.cache['entity.idle'], 24, 32);
-        let skeletonWalkFrames = ImageUtils.sliceImage(assetManager.cache['entity.walk'], 22, 33);
-        let skeletonReactFrames = ImageUtils.sliceImage(assetManager.cache['entity.react'], 22, 32);
-        let skeletonAttackFrames = ImageUtils.sliceImage(assetManager.cache['entity.attack'], 43, 37);
-        let skeletonHitFrames = ImageUtils.sliceImage(assetManager.cache['entity.hit'], 30, 32);
-        let skeletonDeathFrames = ImageUtils.sliceImage(assetManager.cache['entity.death'], 33, 32);
         let raptorRunFrames = ImageUtils.sliceImage(assetManager.cache['raptor.run'], 41, 47);
+        let raptorDeathFrames = ImageUtils.sliceImage(assetManager.cache['raptor.death'], 38, 45);
+        let raptorDeployParaFrames = ImageUtils.sliceImage(assetManager.cache['raptor.deploy_para'], 45, 88);
 
         let config = {
             canvas: canvas,
@@ -133,66 +125,66 @@ window.onload = function () {
         let aiMovementSystem = new AIMovementSystem();
         ecs.addSystem(aiMovementSystem);
 
-        let skeleton;
+        let raptor;
         let trans;
 
         let interval = ctx.canvas.width / 6;
         let xOffset = -interval / 3;
 
-        skeleton = new Entity();
+        raptor = new Entity();
         trans = new TransformComponent((xOffset += interval),
-            ctx.canvas.height / 4,
+            ctx.canvas.height / 3 + 100,
             3, 3, 0);
-        skeleton.add(trans);
-        skeleton.add(new AnimatorComponent(new Animation(skeletonIdleFrames, 100 / 1000, true)));
+        raptor.add(trans);
+        raptor.add(new AnimatorComponent(new Animation(raptorDeathFrames, 100 / 1000, true)));
 
-        ecs.addEntity(skeleton);
+        ecs.addEntity(raptor);
 
-        skeleton = new Entity();
+        raptor = new Entity();
         trans = new TransformComponent((xOffset += interval),
-            ctx.canvas.height / 4,
+            ctx.canvas.height / 3 + 100,
             3, 3, 0);
-        skeleton.add(trans);
-        skeleton.add(new AnimatorComponent(new Animation(skeletonReactFrames, 100 / 1000, true)));
+        raptor.add(trans);
+        raptor.add(new AnimatorComponent(new Animation(raptorDeployParaFrames, 100 / 1000, true)));
 
-        ecs.addEntity(skeleton);
+        ecs.addEntity(raptor);
 
-        skeleton = new Entity();
-        trans = new TransformComponent((xOffset += interval),
-            ctx.canvas.height / 4,
-            3, 3, 0);
-        skeleton.add(trans);
-        skeleton.add(new AnimatorComponent(new Animation(skeletonAttackFrames, 100 / 1000, true)));
+        // raptor = new Entity();
+        // trans = new TransformComponent((xOffset += interval),
+        //     ctx.canvas.height / 3 + 100,
+        //     3, 3, 0);
+        // raptor.add(trans);
+        // raptor.add(new AnimatorComponent(new Animation(skeletonAttackFrames, 100 / 1000, true)));
+        //
+        // ecs.addEntity(raptor);
+        //
+        // raptor = new Entity();
+        // trans = new TransformComponent((xOffset += interval),
+        //     ctx.canvas.height / 3 + 100,
+        //     3, 3, 0);
+        // raptor.add(trans);
+        // raptor.add(new AnimatorComponent(new Animation(skeletonHitFrames, 100 / 1000, true)));
+        //
+        // ecs.addEntity(raptor);
+        //
+        // raptor = new Entity();
+        // trans = new TransformComponent((xOffset += interval),
+        //     ctx.canvas.height / 3 + 100,
+        //     3, 3, 0);
+        // raptor.add(trans);
+        // raptor.add(new AnimatorComponent(new Animation(skeletonDeathFrames, 100 / 1000, true)));
+        //
+        // ecs.addEntity(raptor);
 
-        ecs.addEntity(skeleton);
-
-        skeleton = new Entity();
-        trans = new TransformComponent((xOffset += interval),
-            ctx.canvas.height / 4,
-            3, 3, 0);
-        skeleton.add(trans);
-        skeleton.add(new AnimatorComponent(new Animation(skeletonHitFrames, 100 / 1000, true)));
-
-        ecs.addEntity(skeleton);
-
-        skeleton = new Entity();
-        trans = new TransformComponent((xOffset += interval),
-            ctx.canvas.height / 4,
-            3, 3, 0);
-        skeleton.add(trans);
-        skeleton.add(new AnimatorComponent(new Animation(skeletonDeathFrames, 100 / 1000, true)));
-
-        ecs.addEntity(skeleton);
-
-        let raptorRun = new Entity();
+        raptor = new Entity();
         trans = new TransformComponent(0,
             ctx.canvas.height / 4 * 3,
             3, 3, 0);
-        raptorRun.add(trans);
-        raptorRun.add(new AnimatorComponent(new Animation(raptorRunFrames, 100 / 1000, true)));
+        raptor.add(trans);
+        raptor.add(new AnimatorComponent(new Animation(raptorRunFrames, 100 / 1000, true)));
 
-        ecs.addEntity(raptorRun);
-        aiMovementSystem.entity = raptorRun;
+        ecs.addEntity(raptor);
+        aiMovementSystem.entity = raptor;
 
         engine.start();
     });
