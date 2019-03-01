@@ -82,6 +82,7 @@ window.onload = function () {
     assetManager.queueDownload('raptor.run', '../../assets/raptor/Run.png');
     assetManager.queueDownload('raptor.death', '../../assets/raptor/Death.png');
     assetManager.queueDownload('raptor.deploy_para', '../../assets/raptor/DeployParachute.png');
+    assetManager.queueDownload('raptor.dive', '../../assets/raptor/Dive.png');
     assetManager.downloadAll(function () {
         width = 1024;
         height = 768;
@@ -97,6 +98,7 @@ window.onload = function () {
         let raptorRunFrames = ImageUtils.sliceImage(assetManager.cache['raptor.run'], 41, 47);
         let raptorDeathFrames = ImageUtils.sliceImage(assetManager.cache['raptor.death'], 38, 45);
         let raptorDeployParaFrames = ImageUtils.sliceImage(assetManager.cache['raptor.deploy_para'], 45, 88);
+        let raptorDiveFrames = ImageUtils.sliceImage(assetManager.cache['raptor.dive'], 39, 48);
 
         let config = {
             canvas: canvas,
@@ -149,14 +151,14 @@ window.onload = function () {
 
         ecs.addEntity(raptor);
 
-        // raptor = new Entity();
-        // trans = new TransformComponent((xOffset += interval),
-        //     ctx.canvas.height / 3 + 100,
-        //     3, 3, 0);
-        // raptor.add(trans);
-        // raptor.add(new AnimatorComponent(new Animation(skeletonAttackFrames, 100 / 1000, true)));
-        //
-        // ecs.addEntity(raptor);
+        raptor = new Entity();
+        trans = new TransformComponent((xOffset += interval),
+            ctx.canvas.height / 3 + 100,
+            3, 3, 0);
+        raptor.add(trans);
+        raptor.add(new AnimatorComponent(new Animation(raptorDiveFrames, 100 / 1000, true)));
+
+        ecs.addEntity(raptor);
         //
         // raptor = new Entity();
         // trans = new TransformComponent((xOffset += interval),
