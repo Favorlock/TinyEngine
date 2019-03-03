@@ -155,6 +155,11 @@ class CellularAutomataSystem extends System {
         if (center) {
             x = x - Math.floor(arr[0].length / 2);
             y = y - Math.floor(arr.length / 2);
+
+            if (gap) {
+                x -= 1;
+                y -= 1;
+            }
         }
 
         this.createAutomata(arr, x, y, center);
