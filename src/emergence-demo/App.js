@@ -132,42 +132,6 @@ class CellularAutomataSystem extends System {
         this.next = tmp;
     }
 
-    createPulsar(x, y, center = false) {
-        for (let i = 0; i < 2; i++) {
-            for (let j = 0; j < 2; j++) {
-                for (let r = 0; r < 6; r++) {
-                    for (let c = 0; c < 6; c++) {
-                        let set = 0;
-
-                        if (i) {
-                            if (r > 0 && r < 4 && (c == 0 || c == 5)) set = 1;
-                        } else {
-                            if (r > 1 && r < 5 && (c == 0 || c == 5)) set = 1;
-                        }
-
-                        if (j) {
-                            if ((r == 0 || r == 5) && c > 0 && c < 4) set = 1;
-                        } else {
-                            if ((r == 0 || r == 5) && c > 1 && c < 5) set = 1;
-                        }
-
-                        let row = i * 6 + i + r + y;
-                        let col = j * 6 + j + c + x;
-
-                        if (center) {
-                            row -= 7;
-                            col -= 7;
-                        }
-
-                        if (set && row >= 0 && row < this.rows && col >= 0 && col < this.columns) {
-                            this.next[row][col] = 1;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     createAutomata(arr, x, y, center = false, swapX = false, swapY = false) {
         let cx = center ? -Math.floor(arr[0].length / 2) : 0;
         let cy = center ? -Math.floor(arr.length / 2) : 0;
@@ -187,16 +151,16 @@ class CellularAutomataSystem extends System {
         }
     }
 
-    createAutomataFromQuarter(arr, x, y, center = false) {
+    createAutomataFromQuarter(arr, x, y, center = false, gap = 0) {
         if (center) {
             x = x - Math.floor(arr[0].length / 2);
             y = y - Math.floor(arr.length / 2);
         }
 
         this.createAutomata(arr, x, y, center);
-        this.createAutomata(arr, x + arr[0].length, y, center, true, false);
-        this.createAutomata(arr, x, y + arr.length, center, false, true);
-        this.createAutomata(arr, x + arr[0].length, y + arr.length, center, true, true);
+        this.createAutomata(arr, x + arr[0].length + gap, y, center, true, false);
+        this.createAutomata(arr, x, y + arr.length + gap, center, false, true);
+        this.createAutomata(arr, x + arr[0].length + gap, y + arr.length + gap, center, true, true);
     }
 }
 
@@ -230,6 +194,15 @@ let achimsp11 = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
     [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+]
+
+let pulsar = [
+    [0, 0, 1, 1, 1, 0],
+    [0, 0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 1],
+    [0, 0, 1, 1, 1, 0],
 ]
 
 let pentadecathlon = [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
@@ -269,8 +242,8 @@ window.onload = function () {
 
         cas.createAutomataFromQuarter(achimsp11, cas.columns / 4, cas.rows / 2, true);
         cas.createAutomataFromQuarter(achimsp11, cas.columns / 4 * 3, cas.rows / 2, true);
-        cas.createPulsar(cas.columns / 2, cas.rows / 4, true);
-        cas.createPulsar(cas.columns / 2, cas.rows / 4 * 3, true);
+        cas.createAutomataFromQuarter(pulsar, cas.columns / 2, cas.rows / 4, true, 1);
+        cas.createAutomataFromQuarter(pulsar,cas.columns / 2, cas.rows / 4 * 3, true, 1);
 
         cas.createAutomata(pentadecathlon, cas.columns / 2, cas.rows / 2, true);
 
