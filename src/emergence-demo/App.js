@@ -34,6 +34,16 @@ class DebugSystem extends System {
     }
 
     update() {
+        if (API.InputManager.getKeyboard('PageDown', 'win') && tickDivisor > 1) {
+            tickDivisor -= 1;
+            engine.tickHandler.maxFrameTime = 1 / tickDivisor;
+        }
+
+        if (API.InputManager.getKeyboard('PageUp', 'win') && tickDivisor < 60) {
+            tickDivisor += 1;
+            engine.tickHandler.maxFrameTime = 1 / tickDivisor;
+        }
+
         if (API.InputManager.getKeyboard('`', 'win') && !this.dirty) {
             engine.debug = !engine.debug;
             this.dirty = true;
@@ -187,6 +197,7 @@ let width, height;
 let canvas = document.getElementById('viewport');
 let ctx = canvas.getContext('2d');
 let engine;
+let tickDivisor = 30;
 
 let gosperGliderGun = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -239,7 +250,7 @@ window.onload = function () {
             ctx: ctx,
             width: width,
             height: height,
-            tickHandler: new API.SemiFixedTimestep(canvas, 1 / 10),
+            tickHandler: new API.SemiFixedTimestep(canvas, 1 / tickDivisor),
             ecs: ecs
         };
 
