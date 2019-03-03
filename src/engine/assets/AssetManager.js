@@ -33,6 +33,8 @@ class AssetManager {
             img.src = this.downloadQueue[property];
             this.cache[property] = img;
         }
+
+        if (this.isDone()) callback();
     }
 }
 
