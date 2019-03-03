@@ -163,12 +163,14 @@ class CellularAutomataSystem extends System {
         }
     }
 
-    createAutomata(arr, x, y, center = false) {
+    createAutomata(arr, x, y, center = false, swapX = false, swapY = false) {
         let cx = center ? -Math.floor(arr[0].length / 2) : 0;
         let cy = center ? -Math.floor(arr.length / 2) : 0;
         for (let row = 0; row < arr.length; row++) {
+            let tr = swapY ? arr.length - row - 1: row;
             for (let col = 0; col < arr[row].length; col++) {
-                if (arr[row][col] == 0) continue;
+                let tc = swapX ? arr[tr].length - col - 1 : col;
+                if (arr[tr][tc] == 0) continue;
 
                 let r = y + row + cy;
                 let c = x + col + cx;
@@ -212,7 +214,7 @@ window.onload = function () {
             ctx: ctx,
             width: width,
             height: height,
-            tickHandler: new API.SemiFixedTimestep(canvas),
+            tickHandler: new API.SemiFixedTimestep(canvas, 1 / 60),
             ecs: ecs
         };
 
@@ -231,8 +233,18 @@ window.onload = function () {
         ecs.addSystem(new BackgroundRenderSystem(ctx));
         ecs.addSystem((cas = new CellularAutomataSystem(ctx, height / pd, width / pd, pd, pd)));
 
-        cas.createPulsar(cas.columns / 2, cas.rows / 2, true);
-        cas.createAutomata(gosperGliderGun, 20, 1);
+        cas.createPulsar(cas.columns / 4, cas.rows / 2, true);
+        cas.createPulsar(cas.columns / 4 * 3, cas.rows / 2, true);
+        cas.createPulsar(cas.columns / 2, cas.rows / 4, true);
+        cas.createPulsar(cas.columns / 2, cas.rows / 4 * 3, true);
+
+        for (let i = 0; i < 2; i++) {
+            for (let j = 0; j < 2; j++) {
+                cas.createAutomata(gosperGliderGun, i ? cas.columns / 4 * 3 : cas.columns / 4,
+                    j ? cas.rows / 8 * 7 : cas.rows / 8,
+                    true, i, j);
+            }
+        }
 
         engine.start();
     });
