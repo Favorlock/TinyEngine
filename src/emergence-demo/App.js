@@ -93,15 +93,12 @@ class CellularAutomataSystem extends System {
     }
 
     draw() {
+        this.ctx.fillStyle = 'white';
         for (let row = 0; row < this.rows; row++) {
             for (let col = 0; col < this.columns; col++) {
-                if (this.next[row][col] == 0) {
-                    this.ctx.fillStyle = 'black';
-                } else {
-                    this.ctx.fillStyle = 'white';
+                if (this.next[row][col] == 1) {
+                    this.ctx.fillRect(col * this.width, row * this.height, this.width, this.height);
                 }
-
-                this.ctx.fillRect(col * this.width, row * this.height, this.width, this.height);
             }
         }
     }
@@ -165,12 +162,41 @@ class CellularAutomataSystem extends System {
             }
         }
     }
+
+    createAutomata(arr, x, y, center = false) {
+        let cx = center ? -Math.floor(arr[0].length / 2) : 0;
+        let cy = center ? -Math.floor(arr.length / 2) : 0;
+        for (let row = 0; row < arr.length; row++) {
+            for (let col = 0; col < arr[row].length; col++) {
+                if (arr[row][col] == 0) continue;
+
+                let r = y + row + cy;
+                let c = x + col + cx;
+
+                if (r >= 0 && r <= this.rows && c >= 0 && c < this.columns) {
+                    this.next[r][c] = 1;
+                }
+            }
+        }
+    }
 }
 
 let width, height;
 let canvas = document.getElementById('viewport');
 let ctx = canvas.getContext('2d');
 let engine;
+
+let gosperGliderGun = [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+]
 
 API.InputManager.init(canvas);
 
@@ -186,7 +212,7 @@ window.onload = function () {
             ctx: ctx,
             width: width,
             height: height,
-            tickHandler: new API.SemiFixedTimestep(canvas, 1 / 2),
+            tickHandler: new API.SemiFixedTimestep(canvas),
             ecs: ecs
         };
 
@@ -197,14 +223,16 @@ window.onload = function () {
         engine = new API.Engine(config);
         engine.init();
 
+        let pd = 4;
         let cas;
 
         // Register all systems in the order to be executed.
         ecs.addSystem(new DebugSystem());
         ecs.addSystem(new BackgroundRenderSystem(ctx));
-        ecs.addSystem((cas = new CellularAutomataSystem(ctx, height / 4, width / 4, 4, 4)));
+        ecs.addSystem((cas = new CellularAutomataSystem(ctx, height / pd, width / pd, pd, pd)));
 
         cas.createPulsar(cas.columns / 2, cas.rows / 2, true);
+        cas.createAutomata(gosperGliderGun, 20, 1);
 
         engine.start();
     });
