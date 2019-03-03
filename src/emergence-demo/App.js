@@ -1,11 +1,6 @@
 import API from '../engine/API.js';
 
-let Entity = API.Entity;
 let System = API.System;
-let TransformComponent = API.Components.TransformComponent;
-let AnimatorComponent = API.Components.AnimatorComponent;
-let Animation = API.Animation;
-let ImageUtils = API.ImageUtils;
 
 class BackgroundRenderSystem extends System {
     constructor(ctx) {
@@ -236,6 +231,8 @@ let achimsp11 = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ]
 
+let pentadecathlon = [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
+
 API.InputManager.init(canvas);
 
 window.onload = function () {
@@ -273,6 +270,8 @@ window.onload = function () {
         cas.createAutomata(achimsp11, cas.columns / 4 * 3, cas.rows / 2, true);
         cas.createPulsar(cas.columns / 2, cas.rows / 4, true);
         cas.createPulsar(cas.columns / 2, cas.rows / 4 * 3, true);
+
+        cas.createAutomata(pentadecathlon, cas.columns / 2, cas.rows / 2, true);
 
         for (let i = 0; i < 2; i++) {
             for (let j = 0; j < 2; j++) {
