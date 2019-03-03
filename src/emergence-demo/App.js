@@ -188,6 +188,11 @@ class CellularAutomataSystem extends System {
     }
 
     createAutomataFromQuarter(arr, x, y, center = false) {
+        if (center) {
+            x = x - Math.floor(arr[0].length / 2);
+            y = y - Math.floor(arr.length / 2);
+        }
+
         this.createAutomata(arr, x, y, center);
         this.createAutomata(arr, x + arr[0].length, y, center, true, false);
         this.createAutomata(arr, x, y + arr.length, center, false, true);
