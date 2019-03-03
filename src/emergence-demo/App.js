@@ -56,7 +56,7 @@ class CellularAutomataSystem extends System {
     }
 
     update(entities, time, dt) {
-        if (engine.debug) this.generateNextGeneration();
+        if (!engine.debug) this.generateNextGeneration();
         this.draw();
     }
 
