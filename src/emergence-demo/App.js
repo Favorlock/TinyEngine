@@ -157,8 +157,8 @@ class CellularAutomataSystem extends System {
             y = y - Math.floor(arr.length / 2);
 
             if (gap) {
-                x -= 1;
-                y -= 1;
+                x -= Math.ceil(gap / 2);
+                y -= Math.ceil(gap / 2);
             }
         }
 
