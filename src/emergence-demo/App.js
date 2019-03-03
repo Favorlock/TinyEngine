@@ -56,7 +56,7 @@ class CellularAutomataSystem extends System {
     }
 
     update(entities, time, dt) {
-        this.generateNextGeneration()
+        if (engine.debug) this.generateNextGeneration();
         this.draw();
     }
 
@@ -141,9 +141,9 @@ class CellularAutomataSystem extends System {
                         }
 
                         if (j) {
-                            if ((r == 0 || r == 5)&& c > 0 && c < 4) set = 1;
+                            if ((r == 0 || r == 5) && c > 0 && c < 4) set = 1;
                         } else {
-                            if ((r == 0 || r == 5)&& c > 1 && c < 5) set = 1;
+                            if ((r == 0 || r == 5) && c > 1 && c < 5) set = 1;
                         }
 
                         let row = i * 6 + i + r + y;
@@ -167,7 +167,7 @@ class CellularAutomataSystem extends System {
         let cx = center ? -Math.floor(arr[0].length / 2) : 0;
         let cy = center ? -Math.floor(arr.length / 2) : 0;
         for (let row = 0; row < arr.length; row++) {
-            let tr = swapY ? arr.length - row - 1: row;
+            let tr = swapY ? arr.length - row - 1 : row;
             for (let col = 0; col < arr[row].length; col++) {
                 let tc = swapX ? arr[tr].length - col - 1 : col;
                 if (arr[tr][tc] == 0) continue;
@@ -200,6 +200,31 @@ let gosperGliderGun = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ]
 
+let achimsp11 = [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0],
+    [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+    [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0],
+    [0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+]
+
 API.InputManager.init(canvas);
 
 window.onload = function () {
@@ -214,7 +239,7 @@ window.onload = function () {
             ctx: ctx,
             width: width,
             height: height,
-            tickHandler: new API.SemiFixedTimestep(canvas, 1 / 60),
+            tickHandler: new API.SemiFixedTimestep(canvas, 1 / 10),
             ecs: ecs
         };
 
@@ -233,8 +258,8 @@ window.onload = function () {
         ecs.addSystem(new BackgroundRenderSystem(ctx));
         ecs.addSystem((cas = new CellularAutomataSystem(ctx, height / pd, width / pd, pd, pd)));
 
-        cas.createPulsar(cas.columns / 4, cas.rows / 2, true);
-        cas.createPulsar(cas.columns / 4 * 3, cas.rows / 2, true);
+        cas.createAutomata(achimsp11, cas.columns / 4, cas.rows / 2, true);
+        cas.createAutomata(achimsp11, cas.columns / 4 * 3, cas.rows / 2, true);
         cas.createPulsar(cas.columns / 2, cas.rows / 4, true);
         cas.createPulsar(cas.columns / 2, cas.rows / 4 * 3, true);
 
