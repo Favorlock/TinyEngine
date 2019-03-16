@@ -290,7 +290,7 @@ let pulsar = [
 
 let pentadecathlon = [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
 
-let destination = 'http://24.16.255.56:8888';
+let destination = '24.16.255.56:8888';
 
 API.InputManager.init(canvas);
 
