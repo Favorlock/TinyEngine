@@ -29,22 +29,45 @@ class DebugSystem extends System {
     }
 
     update() {
-        if (API.InputManager.getKeyboard('PageDown', 'win') && tickDivisor > 1) {
+        if (API.InputManager.getKeyboard('PageDown') && tickDivisor > 1) {
             tickDivisor -= 1;
             engine.tickHandler.maxFrameTime = 1 / tickDivisor;
         }
 
-        if (API.InputManager.getKeyboard('PageUp', 'win') && tickDivisor < 60) {
+        if (API.InputManager.getKeyboard('PageUp') && tickDivisor < 60) {
             tickDivisor += 1;
             engine.tickHandler.maxFrameTime = 1 / tickDivisor;
         }
 
-        if (API.InputManager.getKeyboard('`', 'win') && !this.dirty) {
+        if (API.InputManager.getKeyboard('`')) {
             engine.debug = !engine.debug;
-            this.dirty = true;
-        } else if (!API.InputManager.getKeyboard('`', 'win') && this.dirty) {
-            this.dirty = false;
+            API.InputManager.clear('`', 'keyboard');
         }
+    }
+}
+
+class SaveSystem extends System {
+    constructor(cas) {
+        super();
+        this.cas = cas;
+        this.snapshot;
+    }
+
+    update(entities, time, dt) {
+        if (API.InputManager.getKeyboard('s')) {
+            this.save();
+        } else if (API.InputManager.getKeyboard('l') && this.snapshot) {
+            this.load();
+        }
+    }
+
+    save() {
+        this.snapshot = this.cas.snapshot();
+    }
+
+    load() {
+        this.cas.restore(this.snapshot);
+        this.snapshot = null;
     }
 }
 
@@ -58,6 +81,32 @@ class CellularAutomataSystem extends System {
         this.height = h;
         this.next = this.createGrid();
         this.current = this.createGrid();
+    }
+
+    snapshot() {
+        let next = [];
+        let current = [];
+
+        for (let i in this.next) {
+            next.push(this.next[i].slice(0))
+        }
+
+        for (let i in this.current) {
+            current.push(this.current[i].slice(0))
+        }
+
+        return {
+            rows: this.rows,
+            columns: this.columns,
+            width: this.width,
+            height: this.height,
+            next: next,
+            current: current
+        }
+    }
+
+    restore(snapshot) {
+        Object.assign(this, snapshot);
     }
 
     update(entities, time, dt) {
@@ -120,7 +169,7 @@ class CellularAutomataSystem extends System {
         for (let row = 0; row < this.rows; row++) {
             for (let col = 0; col < this.columns; col++) {
                 if (col == 0 || col == this.columns - 1 || row == 0 || row == this.rows - 1) {
-                    this.next[row][col] = [0];
+                    this.next[row][col] = 0;
                 }
             }
         }
@@ -212,6 +261,8 @@ let pulsar = [
 
 let pentadecathlon = [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
 
+let destination = 'http://24.16.255.56:8888';
+
 API.InputManager.init(canvas);
 
 window.onload = function () {
@@ -244,6 +295,7 @@ window.onload = function () {
         ecs.addSystem(new DebugSystem());
         ecs.addSystem(new BackgroundRenderSystem(ctx));
         ecs.addSystem((cas = new CellularAutomataSystem(ctx, height / pd, width / pd, pd, pd)));
+        ecs.addSystem(new SaveSystem(cas));
 
         cas.createAutomataFromQuarter(achimsp11, cas.columns / 4, cas.rows / 2, true);
         cas.createAutomataFromQuarter(achimsp11, cas.columns / 4 * 3, cas.rows / 2, true);

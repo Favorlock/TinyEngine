@@ -1,45 +1,49 @@
 class InputManager {
     constructor(canvas) {
-        this.canvas = {
-            keyboard: {},
-            mouse: {},
-            gamepad: {}
-        }
-        this.win = {
-            keyboard: {},
-            mouse: {},
-            gamepad: {}
-        }
-        window.addEventListener('keydown', e => { this.win.keyboard[e.key] = 1 });
-        window.addEventListener('keyup', e => { this.win.keyboard[e.key] = 0 });
-        window.addEventListener('mousemove', e => {
-            this.win.mouse.clientX = e.clientX;
-            this.win.mouse.clientY = e.clientY;
-        })
-        canvas.addEventListener('keydown', e => { this.win.keyboard[e.key] = 1 });
-        canvas.addEventListener('keyup', e => { this.win.keyboard[e.key] = 0});
+        this.keyboard = {};
+        this.mouse = {};
+        this.gamepad = {};
+
+        canvas.addEventListener('keydown', e => {
+            InputManager.set(e.key, 1);
+        }, false);
+        canvas.addEventListener('keyup', e => {
+            InputManager.clear(e.key)
+        });
         canvas.addEventListener('mousemove', e => {
-            this.canvas.mouse.clientX = e.clientX;
-            this.canvas.mouse.clientY = e.clientY;
-        })
+            this.mouse.clientX = e.clientX;
+            this.mouse.clientY = e.clientY;
+        }, false);
     }
 
-    static get(key, element = 'canvas', device = 'keyboard') {
+    static set(key, value, device = 'keyboard') {
         let instance = InputManager.instance;
-        if (!instance || !instance[element] || !instance[element][device]) return null;
-        else return instance[element][device][key];
+        if (!instance || !instance[device]) return null;
+        instance[device][key] = value;
     }
 
-    static getKeyboard(key, element = 'canvas') {
-        return InputManager.get(key, element, 'keyboard');
+    static get(key, device = 'keyboard') {
+        let instance = InputManager.instance;
+        if (!instance || !instance[device]) return null;
+        return instance[device][key];
     }
 
-    static getMouse(key, element = 'canvas') {
-        return InputManager.get(key, element, 'mouse');
+    static clear(key, device = 'keyboard') {
+        let instance = InputManager.instance;
+        if (!instance  || !instance[device]) return null;
+        InputManager.set(key, 0);
     }
 
-    static getGamepad(key, element = 'canvas') {
-        return InputManager.get(key, element, 'gamepad');
+    static getKeyboard(key) {
+        return InputManager.get(key, 'keyboard');
+    }
+
+    static getMouse(key) {
+        return InputManager.get(key, 'mouse');
+    }
+
+    static getGamepad(key) {
+        return InputManager.get(key, 'gamepad');
     }
 
     static init(canvas) {
