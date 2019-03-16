@@ -49,25 +49,54 @@ class DebugSystem extends System {
 class SaveSystem extends System {
     constructor(cas) {
         super();
+        this.socket = io.connect(destination);
+        this.socket.on('load', this.load.bind(this))
         this.cas = cas;
-        this.snapshot;
+        this.lastSave = 0;
+        this.lastLoad = 0;
     }
 
     update(entities, time, dt) {
         if (API.InputManager.getKeyboard('s')) {
-            this.save();
-        } else if (API.InputManager.getKeyboard('l') && this.snapshot) {
-            this.load();
+            let t = performance.now();
+            if (t - this.lastSave > 1000) {
+                this.lastSave = t;
+                this.save();
+            }
+        } else if (API.InputManager.getKeyboard('l')) {
+            let t = performance.now();
+            if (t - this.lastLoad > 1000) {
+                this.lastLoad = t;
+                this.fetch();
+            }
         }
     }
 
     save() {
-        this.snapshot = this.cas.snapshot();
+        let data = JSON.stringify(this.cas.snapshot());
+
+        this.socket.emit('save', {
+            studentname: 'Evan Lindsay',
+            statename: 'simulation-state',
+            data: data
+        });
     }
 
-    load() {
-        this.cas.restore(this.snapshot);
-        this.snapshot = null;
+    fetch() {
+        this.socket.emit('load', {
+            studentname: 'Evan Lindsay',
+            statename: 'simulation-state'
+        })
+    }
+
+    load(response) {
+        if (response) {
+            let data = response['data'];
+            if (data) {
+                let snapshot = JSON.parse(data);
+                this.cas.restore(snapshot);
+            }
+        }
     }
 }
 
